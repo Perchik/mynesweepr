@@ -57,6 +57,11 @@ const CellContainer = styled.div<{ cell: string; state: State }>`
   font-family: "MINE-SWEEPER", sans-serif;
 `;
 
+const CellIcon = styled.img`
+  width: 28px;
+  height: 28px;
+`;
+
 interface CellProps {
   cell: CellModel;
   onClick: (x: number, y: number, primary: boolean) => void;
@@ -80,7 +85,12 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
       }
     >
       {cellState === State.Open && cell.value !== -1 ? cell.value : ""}
-      {cellState === State.Flagged && "🚩"}
+      {cellState === State.Flagged && (
+        <CellIcon src="/icons/flag.png" alt="Flag" />
+      )}
+      {cellState === State.Exploded && (
+        <CellIcon src="/icons/bomb.png" alt="Bomb" />
+      )}
     </CellContainer>
   );
 };

@@ -1,18 +1,15 @@
-import React, { useState } from "react";
-import styled, { createGlobalStyle } from "styled-components";
-import { Board as BoardModel } from "../models/Board";
+import React from "react";
+import styled from "styled-components";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  RootState,
+  AppDispatch,
+  startNewGame,
+  handleClick,
+  setFacePressed,
+} from "../redux";
 import Board from "./Board";
 import NewGameButton from "./GameButton";
-
-// GlobalStyle component to define the font-face
-const GlobalStyle = createGlobalStyle`
-    @font-face {
-        font-family: 'MINE-SWEEPER';
-        src: url('/fonts/mine-sweeper.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }
-`;
 
 const GameContainer = styled.div`
   display: inline-block;
@@ -49,58 +46,42 @@ const Counter = styled.div`
 `;
 
 const MinesweeperGame: React.FC = () => {
-  const [board, setBoard] = useState<BoardModel>(
-    BoardModel.fromRandomSeed(42, 10, 10, 10)
-  );
-  const [leftClickIsPrimary, setLeftClickIsPrimary] = useState(true); // Default to left-click being primary
-  const [isFacePressed, setIsFacePressed] = useState(false);
-  const [clickedCoords, setClickedCoords] = useState<[number, number] | null>(
-    null
-  );
-
-  const handleClick = (x: number, y: number, primary: boolean) => {
-    setClickedCoords([x, y]);
-    if (primary) {
-      board.openCell(x, y);
-    } else {
-      board.flagCell(x, y);
-    }
-  };
-
-  const handleRightClick = (e: React.MouseEvent, x: number, y: number) => {
-    e.preventDefault();
-    handleClick(x, y, !leftClickIsPrimary);
-  };
-
-  const toggleClickPreference = () => {
-    setLeftClickIsPrimary(!leftClickIsPrimary);
-  };
-
-  const startNewGame = () => {
-    setBoard(BoardModel.fromRandomSeed(42, 10, 10, 10));
-  };
+  const dispatch: AppDispatch = useDispatch();
+  const { board, isFacePressed, leftClickIsPrimary, clickedCoords } =
+    useSelector((state: RootState) => state.game);
 
   const handleMouseDown = () => {
-    setIsFacePressed(true);
+    dispatch(setFacePressed(true));
   };
 
   const handleMouseUp = () => {
-    setIsFacePressed(false);
+    dispatch(setFacePressed(false));
+  };
+
+  const onCellClick = (x: number, y: number) => {
+    dispatch(handleClick({ x, y, primary: leftClickIsPrimary }));
+  };
+
+  const onCellContextMenu = (e: React.MouseEvent, x: number, y: number) => {
+    e.preventDefault();
+    dispatch(handleClick({ x, y, primary: !leftClickIsPrimary }));
   };
 
   return (
     <>
-      <GlobalStyle />
       <GameContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
         <Header>
           <Counter>000</Counter>
-          <NewGameButton onClick={startNewGame} isFacePressed={isFacePressed} />
+          <NewGameButton
+            onClick={() => dispatch(startNewGame())}
+            isFacePressed={isFacePressed}
+          />
           <Counter>000</Counter>
         </Header>
         <Board
           board={board}
-          onClick={handleClick}
-          onContextMenu={handleRightClick}
+          onClick={onCellClick}
+          onContextMenu={onCellContextMenu}
         />
       </GameContainer>
       {clickedCoords && (
