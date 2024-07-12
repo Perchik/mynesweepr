@@ -1,98 +1,114 @@
 import React, { useState } from "react";
-import { Board } from "../models/Board";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
+import { Board as BoardModel } from "../models/Board";
+import Board from "./Board";
+import NewGameButton from "./GameButton";
+
+// GlobalStyle component to define the font-face
+const GlobalStyle = createGlobalStyle`
+    @font-face {
+        font-family: 'MINE-SWEEPER';
+        src: url('/fonts/mine-sweeper.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+`;
 
 const GameContainer = styled.div`
   display: inline-block;
-  border: 1px solid #000;
-  margin-top: 20px;
+  border: 2px solid #999;
+  background-color: #bbb;
+  padding: 10px;
+  border: 6px solid;
+  border-color: #fff #808080 #808080 #fff;
+
+  box-shadow: 2px 2px 10px #000;
 `;
 
-const Row = styled.div`
+const Header = styled.div`
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 6px solid;
+  border-color: #808080 #fff#fff#808080;
 `;
 
-const CellContainer = styled.div<{ cell: string }>`
-  width: 30px;
+const Counter = styled.div`
+  width: 50px;
   height: 30px;
-  border: 1px solid #000;
+  background-color: #000;
+  color: #f00;
+  font-size: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
-  background-color: ${({ cell }) => {
-    switch (cell) {
-      case "0":
-        return "#ddd";
-      case "1":
-        return "#ccc";
-      case "2":
-        return "#bbb";
-      case "3":
-        return "#aaa";
-      case "4":
-        return "#999";
-      case "5":
-        return "#888";
-      case "6":
-        return "#777";
-      case "7":
-        return "#666";
-      case "8":
-        return "#555";
-      case "F":
-        return "#f00";
-      default:
-        return "#ddd";
-    }
-  }};
-  color: ${({ cell }) => (cell === "F" ? "#fff" : "#000")};
+  border: 2px solid #333;
+  box-shadow: inset -2px -2px 5px #333, inset 2px 2px 5px #666;
 `;
 
 const MinesweeperGame: React.FC = () => {
-  const [board, setBoard] = useState<Board>(
-    Board.fromRandomSeed(42, 10, 10, 10)
+  const [board, setBoard] = useState<BoardModel>(
+    BoardModel.fromRandomSeed(42, 10, 10, 10)
+  );
+  const [leftClickIsPrimary, setLeftClickIsPrimary] = useState(true); // Default to left-click being primary
+  const [isFacePressed, setIsFacePressed] = useState(false);
+  const [clickedCoords, setClickedCoords] = useState<[number, number] | null>(
+    null
   );
 
-  const handleCellClick = (x: number, y: number) => {
-    const newBoard = Object.assign(
-      Object.create(Object.getPrototypeOf(board)),
-      board
-    );
-    newBoard.openCell(x, y);
-    setBoard(newBoard);
+  const handleClick = (x: number, y: number, primary: boolean) => {
+    setClickedCoords([x, y]);
+    if (primary) {
+      board.openCell(x, y);
+    } else {
+      board.flagCell(x, y);
+    }
   };
 
   const handleRightClick = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
-    const newBoard = Object.assign(
-      Object.create(Object.getPrototypeOf(board)),
-      board
-    );
-    newBoard.flagCell(x, y);
-    setBoard(newBoard);
+    handleClick(x, y, !leftClickIsPrimary);
+  };
+
+  const toggleClickPreference = () => {
+    setLeftClickIsPrimary(!leftClickIsPrimary);
+  };
+
+  const startNewGame = () => {
+    setBoard(BoardModel.fromRandomSeed(42, 10, 10, 10));
+  };
+
+  const handleMouseDown = () => {
+    setIsFacePressed(true);
+  };
+
+  const handleMouseUp = () => {
+    setIsFacePressed(false);
   };
 
   return (
-    <GameContainer>
-      {board
-        .toString()
-        .split("\n")
-        .map((row, rowIndex) => (
-          <Row key={rowIndex}>
-            {row.split(" ").map((cell, colIndex) => (
-              <CellContainer
-                key={colIndex}
-                cell={cell}
-                onClick={() => handleCellClick(colIndex, rowIndex)}
-                onContextMenu={(e) => handleRightClick(e, colIndex, rowIndex)}
-              >
-                {cell !== "c" && cell}
-              </CellContainer>
-            ))}
-          </Row>
-        ))}
-    </GameContainer>
+    <>
+      <GlobalStyle />
+      <GameContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
+        <Header>
+          <Counter>000</Counter>
+          <NewGameButton onClick={startNewGame} isFacePressed={isFacePressed} />
+          <Counter>000</Counter>
+        </Header>
+        <Board
+          board={board}
+          onClick={handleClick}
+          onContextMenu={handleRightClick}
+        />
+      </GameContainer>
+      {clickedCoords && (
+        <div>
+          Last clicked cell: ({clickedCoords[0]}, {clickedCoords[1]})
+        </div>
+      )}
+    </>
   );
 };
 
