@@ -48,11 +48,9 @@ const CellContainer = styled.div<{ cell: string; state: State }>`
   box-sizing: border-box;
   user-select: none;
   border: solid #808080;
-  border-width: ${({ state }) => (state === State.Closed ? "3px" : "1px")};
-  border-top-color: ${({ state }) =>
-    state === State.Closed ? "#fff" : "#999"};
-  border-left-color: ${({ state }) =>
-    state === State.Closed ? "#fff" : "#999"};
+  border-width: ${({ state }) => (state === State.Open ? "1px" : "3px")};
+  border-top-color: ${({ state }) => (state === State.Open ? "#999" : "#fff")};
+  border-left-color: ${({ state }) => (state === State.Open ? "#999" : "#fff")};
   color: ${({ cell }) => getCellFontColor(cell)};
   font-family: "MINE-SWEEPER", sans-serif;
 `;
@@ -88,8 +86,8 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
       {cellState === State.Flagged && (
         <CellIcon src="/icons/flag.png" alt="Flag" />
       )}
-      {cellState === State.Exploded && (
-        <CellIcon src="/icons/bomb.png" alt="Bomb" />
+      {cellState === State.Mine && (
+        <CellIcon src="/icons/mine.png" alt="mine" />
       )}
     </CellContainer>
   );

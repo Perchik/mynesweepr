@@ -18,7 +18,6 @@ const GameContainer = styled.div`
   padding: 10px;
   border: 6px solid;
   border-color: #fff #808080 #808080 #fff;
-
   box-shadow: 2px 2px 10px #000;
 `;
 
@@ -26,6 +25,7 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: #bbb;
   padding: 5px;
   box-sizing: border-box;
   border: 6px solid;
