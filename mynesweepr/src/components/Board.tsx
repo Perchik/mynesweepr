@@ -1,9 +1,8 @@
 import React from "react";
 import styled from "styled-components";
-import { Board as BoardModel } from "../models/Board";
 import Cell from "./Cell";
+import { Board as BoardModel } from "../models/Board";
 
-// Styled components
 const GameBoard = styled.div`
   display: inline-block;
   border: 6px solid;
@@ -18,10 +17,9 @@ const Row = styled.div`
 interface BoardProps {
   board: BoardModel;
   onClick: (x: number, y: number, primary: boolean) => void;
-  onContextMenu: (e: React.MouseEvent, x: number, y: number) => void;
 }
 
-const Board: React.FC<BoardProps> = ({ board, onClick, onContextMenu }) => {
+const Board: React.FC<BoardProps> = ({ board, onClick }) => {
   return (
     <GameBoard>
       {Array.from({ length: board.height }).map((_, rowIndex) => (
@@ -30,10 +28,13 @@ const Board: React.FC<BoardProps> = ({ board, onClick, onContextMenu }) => {
             const cell = board.getCell(colIndex, rowIndex);
             return (
               <Cell
-                key={colIndex}
+                key={rowIndex * board.width + colIndex}
                 cell={cell}
-                onClick={onClick}
-                onContextMenu={onContextMenu}
+                onClick={() => onClick(colIndex, rowIndex, true)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  onClick(colIndex, rowIndex, false);
+                }}
               />
             );
           })}

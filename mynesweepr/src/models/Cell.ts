@@ -1,24 +1,24 @@
-import { CellCoordinate } from '../types';
-import { State } from './State';
+import { VisualState, MarkerState } from "./CellStates";
 
 export class Cell {
-    value: number;
-    coordinates: CellCoordinate;
-    state: State;
-    neighbors: Cell[];
+  value: number;
+  coords: [number, number];
+  visualState: VisualState;
+  markerState: MarkerState;
+  neighbors: Cell[] = [];
 
-    constructor(value: number, coordinates: CellCoordinate, state: State = State.Closed) {
-        this.value = value;
-        this.coordinates = coordinates;
-        this.state = state;
-        this.neighbors = [];
-    }
+  constructor(value: number, coords: [number, number]) {
+    this.value = value;
+    this.coords = coords;
+    this.visualState = VisualState.Closed;
+    this.markerState = MarkerState.None;
+  }
 
-    setNeighbors(neighbors: Cell[]): void {
-        this.neighbors = neighbors;
-    }
+  setNeighbors(neighbors: Cell[]): void {
+    this.neighbors = neighbors;
+  }
 
-    forEachNeighbor(callback: (neighbor: Cell) => void): void {
-        this.neighbors.forEach(callback);
-    }
+  forEachNeighbor(callback: (neighbor: Cell) => void): void {
+    this.neighbors.forEach(callback);
+  }
 }

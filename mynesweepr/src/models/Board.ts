@@ -1,5 +1,5 @@
 import { Cell } from "./Cell";
-import { State } from "./State";
+import { VisualState, MarkerState } from "./CellStates";
 
 export class Board {
   cells: Cell[][];
@@ -16,8 +16,9 @@ export class Board {
   }
 
   get flags(): number {
-    return this.cells.flat().filter((cell) => cell.state === State.Flagged)
-      .length;
+    return this.cells
+      .flat()
+      .filter((cell) => cell.markerState === MarkerState.Flagged).length;
   }
 
   get width(): number {
@@ -49,12 +50,7 @@ export class Board {
     for (const [dx, dy] of directions) {
       const nx = x + dx;
       const ny = y + dy;
-      if (
-        nx >= 0 &&
-        ny >= 0 &&
-        nx < this.cells[0].length &&
-        ny < this.cells.length
-      ) {
+      if (nx >= 0 && ny >= 0 && nx < this.width && ny < this.height) {
         neighbors.push(this.cells[ny][nx]);
       }
     }
@@ -76,6 +72,7 @@ export class Board {
 
   private placeMine(x: number, y: number): void {
     this.cells[y][x].value = -1;
+    this.cells[y][x].markerState = MarkerState.Mine;
     this.incrementNeighboringCells(x, y);
   }
 
@@ -90,8 +87,11 @@ export class Board {
       visited.add(currentCell);
 
       currentCell.forEachNeighbor((neighbor) => {
-        if (neighbor.state === State.Closed && neighbor.value !== -1) {
-          neighbor.state = State.Open;
+        if (
+          neighbor.visualState === VisualState.Closed &&
+          neighbor.value !== -1
+        ) {
+          neighbor.visualState = VisualState.Open;
           if (neighbor.value === 0) {
             stack.push(neighbor);
           }
@@ -100,22 +100,76 @@ export class Board {
     }
   }
 
+  private revealAllMines(): void {
+    this.cells.flat().forEach((cell) => {
+      if (cell.value === -1) {
+        cell.visualState = VisualState.Open;
+      }
+    });
+  }
+
+  // If user clicked a number that already has the correct number of flagged neighbors, open all other neighbors
+  private maybeChordCell(x: number, y: number): void {
+    const cell = this.getCell(x, y);
+    const neighbors = this.getNeighbors(x, y);
+    const flaggedNeighbors = neighbors.filter(
+      (neighbor) => neighbor.markerState === MarkerState.Flagged
+    );
+
+    if (flaggedNeighbors.length !== cell.value) return;
+    neighbors.forEach((neighbor) => {
+      if (neighbor.visualState === VisualState.Closed) {
+        this.openCell(neighbor.coords[0], neighbor.coords[1]);
+      }
+    });
+  }
+
+  private maybeFlagChordCell(x: number, y: number): void {
+    const cell = this.getCell(x, y);
+    const neighbors = this.getNeighbors(x, y);
+    const closedNeighbors = neighbors.filter(
+      (neighbor) => neighbor.visualState === VisualState.Closed
+    );
+    if (closedNeighbors.length !== cell.value) return;
+    closedNeighbors.forEach((neighbor) => {
+      if (neighbor.markerState !== MarkerState.Flagged) {
+        this.flagCell(neighbor.coords[0], neighbor.coords[1]);
+      }
+    });
+  }
+
   public openCell(x: number, y: number): void {
     const cell = this.getCell(x, y);
-    if (cell.state === State.Closed) {
-      cell.state = State.Open;
+    if (
+      cell.markerState === MarkerState.Flagged ||
+      cell.markerState === MarkerState.Guessed
+    )
+      return;
+
+    if (cell.visualState === VisualState.Closed) {
+      cell.visualState = VisualState.Open;
       if (cell.value === 0) {
         this.revealZeroNeighbors(x, y);
       }
+      if (cell.value === -1) {
+        this.revealAllMines();
+        cell.visualState = VisualState.Exploded;
+      }
+    } else if (cell.visualState === VisualState.Open) {
+      this.maybeChordCell(x, y);
     }
   }
 
   public flagCell(x: number, y: number): void {
     const cell = this.getCell(x, y);
-    if (cell.state === State.Closed) {
-      cell.state = State.Flagged;
-    } else if (cell.state === State.Flagged) {
-      cell.state = State.Closed;
+    if (cell.visualState === VisualState.Closed) {
+      if (cell.markerState === MarkerState.Flagged) {
+        cell.markerState = MarkerState.None;
+      } else {
+        cell.markerState = MarkerState.Flagged;
+      }
+    } else if (cell.visualState === VisualState.Open) {
+      this.maybeFlagChordCell(x, y);
     }
   }
 
@@ -128,16 +182,19 @@ export class Board {
       .map((row) =>
         row
           .map((cell) => {
-            switch (cell.state) {
-              case State.Open:
-                return cell.value.toString();
-              case State.Flagged:
-                return "F";
-              case State.Closed:
-                return "c";
-              default:
-                return " ";
+            if (cell.visualState === VisualState.Open) {
+              return cell.value.toString();
             }
+            if (cell.markerState === MarkerState.Flagged) {
+              return "F";
+            }
+            if (cell.markerState === MarkerState.Guessed) {
+              return "G";
+            }
+            if (cell.markerState === MarkerState.Mine) {
+              return "M";
+            }
+            return "C"; // Closed
           })
           .join(" ")
       )
@@ -150,8 +207,8 @@ export class Board {
       .split("\n")
       .map((row) =>
         row.split(" ").map((cell) => {
-          if (cell === "c") return -1; // unopened cell
-          if (cell === "F") return 10; // flagged cell
+          if (cell === "C") return -1; // Closed cell
+          if (cell === "F") return 10; // Flagged cell
           return parseInt(cell);
         })
       );

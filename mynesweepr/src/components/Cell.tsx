@@ -1,57 +1,79 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
-import { Cell as CellModel } from "../models/Cell";
-import { State } from "../models/State";
 
-const getCellBackgroundColor = (state: State) => {
-  switch (state) {
-    case State.Open:
+import { Cell as CellModel } from "../models/Cell";
+import { VisualState, MarkerState } from "../models/CellStates";
+
+const getCellBackgroundColor = (visualState: VisualState) => {
+  switch (visualState) {
+    case VisualState.Open:
       return "#ddd";
-    case State.Exploded:
-      return "#ff0000";
+    case VisualState.Exploded:
+      return "#f00";
+    case VisualState.Closed:
     default:
       return "#ccc";
   }
 };
 
-const getCellFontColor = (cell: string) => {
-  switch (cell) {
-    case "1":
+const getCellFontColor = (cellValue: number) => {
+  switch (cellValue) {
+    case 1:
       return "#00f";
-    case "2":
+    case 2:
       return "#008000";
-    case "3":
+    case 3:
       return "#f00";
-    case "4":
+    case 4:
       return "#000080";
-    case "5":
+    case 5:
       return "#800000";
-    case "6":
+    case 6:
       return "#008080";
-    case "7":
+    case 7:
       return "#000";
-    case "8":
+    case 8:
       return "#808080";
     default:
       return "transparent";
   }
 };
 
-const CellContainer = styled.div<{ cell: string; state: State }>`
+const CellContainer = styled.div.attrs<{
+  visualState: VisualState;
+  cellValue: number;
+}>(({ visualState, cellValue }) => ({
+  visualState,
+  cellValue,
+}))<{
+  visualState: VisualState;
+  cellValue: number;
+}>`
   width: 30px;
   height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  background-color: ${({ state }) => getCellBackgroundColor(state)};
+  background-color: ${({ visualState }) => getCellBackgroundColor(visualState)};
   box-sizing: border-box;
   user-select: none;
   border: solid #808080;
-  border-width: ${({ state }) => (state === State.Open ? "1px" : "3px")};
-  border-top-color: ${({ state }) => (state === State.Open ? "#999" : "#fff")};
-  border-left-color: ${({ state }) => (state === State.Open ? "#999" : "#fff")};
-  color: ${({ cell }) => getCellFontColor(cell)};
+  border-width: ${({ visualState }) =>
+    visualState === VisualState.Open
+      ? "1px"
+      : visualState === VisualState.Exploded
+      ? 0
+      : "3px"};
+  border-top-color: ${({ visualState }) =>
+    visualState === VisualState.Open || visualState === VisualState.Exploded
+      ? "#999"
+      : "#fff"};
+  border-left-color: ${({ visualState }) =>
+    visualState === VisualState.Open || visualState === VisualState.Exploded
+      ? "#999"
+      : "#fff"};
+  color: ${({ cellValue }) => getCellFontColor(cellValue)};
   font-family: "MINE-SWEEPER", sans-serif;
 `;
 
@@ -59,35 +81,32 @@ const CellIcon = styled.img`
   width: 28px;
   height: 28px;
 `;
-
 interface CellProps {
   cell: CellModel;
-  onClick: (x: number, y: number, primary: boolean) => void;
-  onContextMenu: (e: React.MouseEvent, x: number, y: number) => void;
+  onClick: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
 }
 
 const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
-  const [cellState, setCellState] = useState(cell.state);
-
-  useEffect(() => {
-    setCellState(cell.state);
-  }, [cell.state]);
-
   return (
     <CellContainer
-      state={cellState}
-      cell={cell.value.toString()}
-      onClick={() => onClick(cell.coordinates[0], cell.coordinates[1], true)}
-      onContextMenu={(e) =>
-        onContextMenu(e, cell.coordinates[0], cell.coordinates[1])
-      }
+      onClick={onClick}
+      onContextMenu={onContextMenu}
+      className="cell"
+      cellValue={cell.value}
+      visualState={cell.visualState}
     >
-      {cellState === State.Open && cell.value !== -1 ? cell.value : ""}
-      {cellState === State.Flagged && (
-        <CellIcon src="/icons/flag.png" alt="Flag" />
-      )}
-      {cellState === State.Mine && (
-        <CellIcon src="/icons/mine.png" alt="mine" />
+      {cell.visualState === VisualState.Open ||
+      cell.visualState === VisualState.Exploded ? (
+        cell.value === -1 ? (
+          <CellIcon src="icons/mine.png" alt="mine" />
+        ) : (
+          cell.value
+        )
+      ) : cell.markerState === MarkerState.Flagged ? (
+        <CellIcon src="icons/flag.png" alt="flag" />
+      ) : (
+        ""
       )}
     </CellContainer>
   );

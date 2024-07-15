@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Board from "./Board";
+import GameButton from "./GameButton";
 import { Board as BoardModel } from "../models/Board";
-import NewGameButton from "./GameButton";
 
 const GameContainer = styled.div`
   display: inline-block;
@@ -57,10 +57,7 @@ const MinesweeperGame: React.FC = () => {
     }
   };
 
-  const handleRightClick = (e: React.MouseEvent, x: number, y: number) => {
-    e.preventDefault();
-    handleClick(x, y, !leftClickIsPrimary);
-  };
+  
 
   const startNewGame = () => {
     setBoard(BoardModel.fromRandomSeed(42, 10, 10, 10));
@@ -78,14 +75,16 @@ const MinesweeperGame: React.FC = () => {
     <>
       <GameContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
         <Header>
-          <Counter>000</Counter>
-          <NewGameButton onClick={startNewGame} isFacePressed={isFacePressed} />
-          <Counter>000</Counter>
+          <Counter>{board.flags}</Counter>
+          <GameButton
+            onClick={startNewGame}
+            isFacePressed={isFacePressed}
+          />
+          <Counter>{board.mines}</Counter>
         </Header>
         <Board
           board={board}
           onClick={handleClick}
-          onContextMenu={handleRightClick}
         />
       </GameContainer>
       {clickedCoords && (
