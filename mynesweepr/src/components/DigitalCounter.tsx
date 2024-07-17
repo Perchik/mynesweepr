@@ -6,8 +6,7 @@ const CounterContainer = styled.div`
   margin: 6px;
   background-color: #000;
   gap: 3px;
-  border: 2px solid #333;
-  box-shadow: inset -2px -2px 5px #333, inset 2px 2px 5px #666;
+  border: 2px solid #000;
 `;
 
 const Digit = styled.img`
