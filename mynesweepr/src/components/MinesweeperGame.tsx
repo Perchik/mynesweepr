@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import Board from "./Board";
 import GameButton from "./GameButton";
@@ -23,20 +23,7 @@ const Header = styled.div`
   padding: 5px;
   box-sizing: border-box;
   border: 6px solid;
-  border-color: #808080 #fff#fff#808080;
-`;
-
-const Counter = styled.div`
-  width: 50px;
-  height: 30px;
-  background-color: #000;
-  color: #f00;
-  font-size: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 2px solid #333;
-  box-shadow: inset -2px -2px 5px #333, inset 2px 2px 5px #666;
+  border-color: #808080 #fff #fff #808080;
 `;
 
 const MinesweeperGame: React.FC = () => {
@@ -48,8 +35,40 @@ const MinesweeperGame: React.FC = () => {
   const [clickedCoords, setClickedCoords] = useState<[number, number] | null>(
     null
   );
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [seed, setSeed] = useState<string>("");
+  const timerRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (board.gameOver) {
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+      }
+    }
+  }, [board.gameOver]);
+
+  const startTimer = () => {
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+      setElapsedTime(0);
+      timerRef.current = window.setInterval(() => {
+        setElapsedTime((prevElapsedTime) => {
+          const newElapsedTime = Math.floor(
+            (Date.now() - startTimeRef.current!) / 1000
+          );
+          if (newElapsedTime >= 999) {
+            clearInterval(timerRef.current!);
+            return 999;
+          }
+          return newElapsedTime;
+        });
+      }, 1000);
+    }
+  };
 
   const handleClick = (x: number, y: number, primary: boolean) => {
+    startTimer();
     setClickedCoords([x, y]);
     if (primary) {
       board.openCell(x, y);
@@ -58,8 +77,24 @@ const MinesweeperGame: React.FC = () => {
     }
   };
 
-  const startNewGame = () => {
-    setBoard(BoardModel.fromRandomSeed(42, 10, 10, 10));
+  const startNewGame = (seedValue?: string) => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+    }
+    const newSeed = seedValue || Math.floor(Math.random() * 10000).toString();
+    setSeed(newSeed);
+    startTimeRef.current = null;
+    setElapsedTime(0);
+    setBoard(BoardModel.fromRandomSeed(parseInt(newSeed), 10, 10, 10));
+  };
+
+  const handleSeedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSeed(event.target.value);
+  };
+
+  const handleSeedSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    startNewGame(seed);
   };
 
   const handleMouseDown = () => {
@@ -75,10 +110,22 @@ const MinesweeperGame: React.FC = () => {
       <GameContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
         <Header>
           <DigitalCounter value={board.mines - board.flags} />
-          <GameButton onClick={startNewGame} isMouseButtonDown={isMouseDown} />
-          <DigitalCounter value={999} />{" "}
+          <GameButton
+            onClick={() => startNewGame()}
+            isMouseButtonDown={isMouseDown}
+          />
+          <DigitalCounter value={elapsedTime} />
         </Header>
         <Board board={board} onClick={handleClick} />
+        <form onSubmit={handleSeedSubmit}>
+          <input
+            type="text"
+            value={seed}
+            onChange={handleSeedChange}
+            placeholder="Enter seed"
+          />
+          <button type="submit">Set Seed</button>
+        </form>
       </GameContainer>
       {clickedCoords && (
         <div>
