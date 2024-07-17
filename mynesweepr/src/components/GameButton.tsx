@@ -26,11 +26,14 @@ const ButtonContainer = styled.button`
 `;
 interface GameButtonProps {
   onClick: () => void;
-  isFacePressed: boolean;
+  isMouseButtonDown: boolean;
 }
 
-const GameButton: React.FC<GameButtonProps> = ({ onClick, isFacePressed }) => {
-  const face = isFacePressed ? "😯" : "🙂";
+const GameButton: React.FC<GameButtonProps> = ({
+  onClick,
+  isMouseButtonDown,
+}) => {
+  const face = isMouseButtonDown ? "😯" : "🙂";
 
   return <ButtonContainer onClick={onClick}>{face}</ButtonContainer>;
 };

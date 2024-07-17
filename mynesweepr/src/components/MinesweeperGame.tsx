@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Board from "./Board";
 import GameButton from "./GameButton";
 import { Board as BoardModel } from "../models/Board";
+import DigitalCounter from "./DigitalCounter";
 
 const GameContainer = styled.div`
   display: inline-block;
@@ -43,7 +44,7 @@ const MinesweeperGame: React.FC = () => {
     BoardModel.fromRandomSeed(42, 10, 10, 10)
   );
   const [leftClickIsPrimary, setLeftClickIsPrimary] = useState(true); // Default to left-click being primary
-  const [isFacePressed, setIsFacePressed] = useState(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
   const [clickedCoords, setClickedCoords] = useState<[number, number] | null>(
     null
   );
@@ -57,35 +58,27 @@ const MinesweeperGame: React.FC = () => {
     }
   };
 
-  
-
   const startNewGame = () => {
     setBoard(BoardModel.fromRandomSeed(42, 10, 10, 10));
   };
 
   const handleMouseDown = () => {
-    setIsFacePressed(true);
+    setIsMouseDown(true);
   };
 
   const handleMouseUp = () => {
-    setIsFacePressed(false);
+    setIsMouseDown(false);
   };
 
   return (
     <>
       <GameContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
         <Header>
-          <Counter>{board.flags}</Counter>
-          <GameButton
-            onClick={startNewGame}
-            isFacePressed={isFacePressed}
-          />
-          <Counter>{board.mines}</Counter>
+          <DigitalCounter value={board.mines - board.flags} />
+          <GameButton onClick={startNewGame} isMouseButtonDown={isMouseDown} />
+          <DigitalCounter value={999} />{" "}
         </Header>
-        <Board
-          board={board}
-          onClick={handleClick}
-        />
+        <Board board={board} onClick={handleClick} />
       </GameContainer>
       {clickedCoords && (
         <div>

@@ -1,14 +1,23 @@
+import seedrandom from "seedrandom";
 import { Cell } from "./Cell";
 import { VisualState, MarkerState } from "./CellStates";
 
 export class Board {
   cells: Cell[][];
+  gameOver: boolean;
 
-  constructor(cells: number[][]) {
+  public newGame(cells: number[][]): void {
     this.cells = cells.map((row, y) =>
       row.map((value, x) => new Cell(value, [x, y]))
     );
+    this.gameOver = false;
     this.initializeNeighbors();
+  }
+
+  constructor(cells: number[][]) {
+    this.cells = [];
+    this.gameOver = false;
+    this.newGame(cells);
   }
 
   get mines(): number {
@@ -30,8 +39,8 @@ export class Board {
   }
 
   private initializeNeighbors(): void {
-    for (let y = 0; y < this.cells.length; y++) {
-      for (let x = 0; x < this.cells[y].length; x++) {
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
         const neighbors = this.getNeighbors(x, y);
         this.cells[y][x].setNeighbors(neighbors);
       }
@@ -139,6 +148,8 @@ export class Board {
   }
 
   public openCell(x: number, y: number): void {
+    if (this.gameOver) return;
+
     const cell = this.getCell(x, y);
     if (
       cell.markerState === MarkerState.Flagged ||
@@ -154,13 +165,28 @@ export class Board {
       if (cell.value === -1) {
         this.revealAllMines();
         cell.visualState = VisualState.Exploded;
+        this.gameOver = true;
       }
     } else if (cell.visualState === VisualState.Open) {
       this.maybeChordCell(x, y);
     }
+
+    if (this.flags === this.mines) {
+      let allFlagsCorrect = true;
+      this.cells.flat().forEach((cell) => {
+        if (cell.markerState === MarkerState.Flagged && cell.value !== -1) {
+          allFlagsCorrect = false;
+        }
+      });
+      if (allFlagsCorrect) {
+        this.gameOver = true;
+      }
+    }
   }
 
   public flagCell(x: number, y: number): void {
+    if (this.gameOver) return;
+
     const cell = this.getCell(x, y);
     if (cell.visualState === VisualState.Closed) {
       if (cell.markerState === MarkerState.Flagged) {
@@ -191,9 +217,6 @@ export class Board {
             if (cell.markerState === MarkerState.Guessed) {
               return "G";
             }
-            if (cell.markerState === MarkerState.Mine) {
-              return "M";
-            }
             return "C"; // Closed
           })
           .join(" ")
@@ -221,19 +244,15 @@ export class Board {
     height: number,
     mines: number
   ): Board {
+    const rng = seedrandom(seed.toString());
     const cells = Array.from({ length: height }, () => Array(width).fill(0));
     let placedMines = 0;
-
-    function random() {
-      const x = Math.sin(seed++) * 10000;
-      return x - Math.floor(x);
-    }
 
     const board = new Board(cells);
 
     while (placedMines < mines) {
-      const x = Math.floor(random() * width);
-      const y = Math.floor(random() * height);
+      const x = Math.floor(rng() * width);
+      const y = Math.floor(rng() * height);
       if (!board.isMine(x, y)) {
         board.placeMine(x, y);
         placedMines++;
