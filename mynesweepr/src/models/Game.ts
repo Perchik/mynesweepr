@@ -1,4 +1,4 @@
-import { Board } from "./Board";
+import { Board } from "../board/Board";
 import { VisualState, MarkerState } from "../cell/CellStates";
 import { GameState } from "../models/GameState";
 

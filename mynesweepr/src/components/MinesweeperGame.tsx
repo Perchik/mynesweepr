@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
-import Board from "./Board";
+import Board from "../board/Board.component";
 import GameButton from "./GameButton";
-import { Board as BoardModel } from "../models/Board";
+import { Board as BoardModel } from "../board/Board";
 import DigitalCounter from "./DigitalCounter";
 import { GameButtonState } from "../models/GameState";
 import { Game } from "../models/Game";
