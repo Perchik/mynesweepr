@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from "react";
-import "./App.css";
 import styled from "styled-components";
 
 declare global {
@@ -13,7 +12,7 @@ const AppContainer = styled.div`
 `;
 
 const ImageCanvas = styled.canvas`
-  max-width: 100%;
+  max-width: 50%;
   height: auto;
   margin: 20px auto;
   border: 1px solid #000;
@@ -47,9 +46,18 @@ const App: React.FC = () => {
             const src = cv.imread(img);
             const gray = new cv.Mat();
             cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-            cv.imshow(canvas, gray);
+
+            // Detect edges using Canny
+            const edges = new cv.Mat();
+            cv.Canny(gray, edges, 50, 150);
+
+            // Display the edges on the canvas
+            cv.imshow(canvas, edges);
+
+            // Clean up
             src.delete();
             gray.delete();
+            edges.delete();
           }
         }
       };
@@ -59,7 +67,7 @@ const App: React.FC = () => {
   return (
     <AppContainer>
       <HiddenImage ref={imgRef} src="/images/board1.png" alt="Original" />
-      <ImageCanvas ref={canvasRef} className="image-canvas" />
+      <ImageCanvas ref={canvasRef} />
     </AppContainer>
   );
 };
