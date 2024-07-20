@@ -1,6 +1,8 @@
+import { produce, immerable, Draft } from "immer";
 import { VisualState, MarkerState } from "./CellStates";
 
-export class Cell {
+class Cell {
+  static [immerable] = true;
   value: number;
   position: { x: number; y: number };
   visualState: VisualState;
@@ -14,24 +16,32 @@ export class Cell {
     this.markerState = MarkerState.None;
   }
 
-  setNeighbors(neighbors: Cell[]): void {
-    this.neighbors = neighbors;
-  }
+  setValue = (value: number): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      draft.value = value;
+    });
+  };
+
+  setNeighbors = (neighbors: Cell[]): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      draft.neighbors = neighbors;
+    });
+  };
 
   forEachNeighbor(callback: (neighbor: Cell) => void): void {
     this.neighbors.forEach(callback);
   }
 
-  maybeOpen(): boolean {
-    if (this.isMarked() || this.isOpen()) return false;
+  maybeOpen = (): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      if (draft.isMarked() || draft.isOpen()) return;
 
-    this.visualState = VisualState.Open;
-    if (this.isMine()) {
-      this.markerState = MarkerState.Mine;
-    }
-    // TODO: handle incorrectly marked mines here
-    return true;
-  }
+      draft.visualState = VisualState.Open;
+      if (draft.isMine()) {
+        draft.markerState = MarkerState.Mine;
+      }
+    });
+  };
 
   isOpen(): boolean {
     return this.visualState === VisualState.Open;
@@ -52,16 +62,31 @@ export class Cell {
     );
   }
 
-  // Toggles between Flag, ?, and Blank. Returns whether the cell is now flagged.
-  toggleFlag(useGuessing = false): boolean {
-    if (this.markerState === MarkerState.None) {
-      this.markerState = MarkerState.Flagged;
-    } else if (this.markerState === MarkerState.Flagged) {
-      this.markerState = useGuessing ? MarkerState.Guessed : MarkerState.None;
-    } else if (this.markerState === MarkerState.Guessed) {
-      this.markerState = MarkerState.None;
-    }
+  toggleFlag = (useGuessing = false): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      if (draft.markerState === MarkerState.None) {
+        draft.markerState = MarkerState.Flagged;
+      } else if (draft.markerState === MarkerState.Flagged) {
+        draft.markerState = useGuessing
+          ? MarkerState.Guessed
+          : MarkerState.None;
+      } else if (draft.markerState === MarkerState.Guessed) {
+        draft.markerState = MarkerState.None;
+      }
+    });
+  };
 
-    return this.markerState === MarkerState.Flagged;
-  }
+  open = (): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      draft.visualState = VisualState.Open;
+    });
+  };
+
+  flag = (): Cell => {
+    return produce(this, (draft: Draft<Cell>) => {
+      draft.markerState = MarkerState.Flagged;
+    });
+  };
 }
+
+export { Cell };

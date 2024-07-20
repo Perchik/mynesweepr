@@ -1,8 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
 import styled from "styled-components";
-
-import { Cell as CellModel } from "./Cell.model";
 import { VisualState, MarkerState } from "./CellStates";
+import useCellStore from "./useCellStore";
 
 const getCellBackgroundColor = (visualState: VisualState) => {
   switch (visualState) {
@@ -83,7 +82,8 @@ const CellIcon = styled.img`
 `;
 
 interface CellProps {
-  cell: CellModel;
+  x: number;
+  y: number;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
@@ -100,7 +100,15 @@ const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
   }
 };
 
-const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
+const Cell: React.FC<CellProps> = ({ x, y, onClick, onContextMenu }) => {
+  const { cells } = useCellStore();
+  const cell = cells[y] && cells[y][x];
+
+  if (!cell) {
+    console.error(`Cell at (${x}, ${y}) not found`);
+    return null;
+  }
+
   return (
     <CellContainer
       onClick={onClick}

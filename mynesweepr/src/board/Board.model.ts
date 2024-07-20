@@ -5,6 +5,10 @@ export class Board {
   private _cells: Cell[][];
   private _mines: number;
 
+  get cells(): Cell[][] {
+    return this._cells;
+  }
+
   get cell() {
     return (x: number, y: number) => this._cells[y][x];
   }
@@ -65,16 +69,18 @@ export class Board {
   }
 
   private placeMine(x: number, y: number): void {
-    this.cell(x, y).value = -1;
+    this.cell(x, y).setValue(-1);
     this.cell(x, y).forEachNeighbor((neighbor) => {
       // Update the count of non-mine neighbors
       if (!neighbor.isMine()) {
-        neighbor.value++;
+        this.cell(neighbor.position.x, neighbor.position.y).setValue(
+          this.cell(neighbor.position.x, neighbor.position.y).value + 1
+        );
       }
     });
   }
 
-  private getNeighbors(x: number, y: number): Cell[] {
+  getNeighbors(x: number, y: number): Cell[] {
     // prettier-ignore
     const directions = [
         [-1, -1], [-1, 0], [-1, 1],
