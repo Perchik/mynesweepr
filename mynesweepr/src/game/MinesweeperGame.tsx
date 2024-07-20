@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
 import Board from "../board/Board.component";
-import GameButton from "./GameButton";
-import { Board as BoardModel } from "../board/Board";
-import DigitalCounter from "./DigitalCounter";
-import { GameButtonState } from "../models/GameState";
-import { Game } from "../models/Game";
+import GameButton from "../components/GameButton";
+import { Board as BoardModel } from "../board/Board.model";
+import DigitalCounter from "../components/DigitalCounter";
+import { GameButtonState } from "./GameState";
+import { Game } from "./Game.model";
 
 const GameContainer = styled.div`
   display: inline-block;

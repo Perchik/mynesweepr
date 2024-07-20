@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import MinesweeperGame from "./components/MinesweeperGame";
+import MinesweeperGame from "./game/MinesweeperGame";
 import Footer from "./components/Footer";
 import GlobalStyle from "./globalStyles";
 

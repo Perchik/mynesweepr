@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { GameButtonState } from "../models/GameState";
+import { GameButtonState } from "../game/GameState";
 
 const ButtonContainer = styled.button`
   align-items: center;

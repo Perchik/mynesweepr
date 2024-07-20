@@ -1,5 +1,5 @@
 import seedrandom from "seedrandom";
-import { Cell } from "../cell/Cell";
+import { Cell } from "../cell/Cell.model";
 
 export class Board {
   private _cells: Cell[][];

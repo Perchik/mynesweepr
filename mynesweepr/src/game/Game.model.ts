@@ -1,6 +1,6 @@
-import { Board } from "../board/Board";
+import { Board } from "../board/Board.model";
 import { VisualState, MarkerState } from "../cell/CellStates";
-import { GameState } from "../models/GameState";
+import { GameState } from "./GameState";
 
 export class Game {
   board: Board;

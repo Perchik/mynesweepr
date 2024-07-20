@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import Cell from "../cell/Cell.component";
-import { Board as BoardModel } from "./Board.model";
+import Cell from "../../cell/Cell.component";
+import { Board as BoardModel } from "../../board/Board.model";
 
 const GameBoard = styled.div`
   display: inline-block;
