@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="333.33" height="333.33">
+    <path fill-rule="evenodd" d="M171.9 167.27v76.457h-52.914v28.295h134.12v-28.295h-52.912V167.27z"
+        color="#000" />
+    <path fill="red" fill-rule="evenodd" d="M171.9 167.27V61.31l-91.666 53.035z" />
+    <path fill="#d40000" fill-rule="evenodd" d="M171.9 61.311h28.296v105.96H171.9z" color="#000" />
+</svg>

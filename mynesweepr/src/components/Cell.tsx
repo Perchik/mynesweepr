@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import styled from "styled-components";
 
 import { Cell as CellModel } from "../models/Cell";
@@ -78,14 +78,27 @@ const CellContainer = styled.div.attrs<{
 `;
 
 const CellIcon = styled.img`
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
 `;
+
 interface CellProps {
   cell: CellModel;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
+
+const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
+  switch (markerState) {
+    case MarkerState.Flagged:
+      return <CellIcon src="icons/flag.svg" alt="flag" />;
+    case MarkerState.Guessed:
+      return <CellIcon src="icons/question.svg" alt="question mark" />;
+    case MarkerState.None:
+    default:
+      return null;
+  }
+};
 
 const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   return (
@@ -96,17 +109,14 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
       cellValue={cell.value}
       visualState={cell.visualState}
     >
-      {cell.visualState === VisualState.Open ||
-      cell.visualState === VisualState.Exploded ? (
-        cell.value === -1 ? (
+      {cell.isOpen() || cell.visualState === VisualState.Exploded ? (
+        cell.isMine() ? (
           <CellIcon src="icons/mine.png" alt="mine" />
         ) : (
           cell.value
         )
-      ) : cell.markerState === MarkerState.Flagged ? (
-        <CellIcon src="icons/flag.png" alt="flag" />
       ) : (
-        ""
+        getMarkerIcon(cell.markerState)
       )}
     </CellContainer>
   );

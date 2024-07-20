@@ -1,50 +1,77 @@
 import seedrandom from "seedrandom";
 import { Cell } from "./Cell";
-import { VisualState, MarkerState } from "./CellStates";
 
 export class Board {
-  cells: Cell[][];
-  gameOver: boolean;
+  private _cells: Cell[][];
+  private _mines: number;
 
-  public newGame(cells: number[][]): void {
-    this.cells = cells.map((row, y) =>
-      row.map((value, x) => new Cell(value, [x, y]))
-    );
-    this.gameOver = false;
-    this.initializeNeighbors();
-  }
-
-  constructor(cells: number[][]) {
-    this.cells = [];
-    this.gameOver = false;
-    this.newGame(cells);
-  }
-
-  get mines(): number {
-    return this.cells.flat().filter((cell) => cell.value === -1).length;
-  }
-
-  get flags(): number {
-    return this.cells
-      .flat()
-      .filter((cell) => cell.markerState === MarkerState.Flagged).length;
+  get cell() {
+    return (x: number, y: number) => this._cells[y][x];
   }
 
   get width(): number {
-    return this.cells[0].length;
+    return this._cells[0].length;
   }
 
   get height(): number {
-    return this.cells.length;
+    return this._cells.length;
+  }
+  get unopenedCells(): Cell[] {
+    return this._cells.flat().filter((cell) => !cell.isOpen());
+  }
+  get mineCells(): Cell[] {
+    return this._cells.flat().filter((cell) => cell.isMine());
   }
 
-  private initializeNeighbors(): void {
+  get numMines(): number {
+    return this._mines;
+  }
+
+  constructor(width: number, height: number, mines: number, seed?: string) {
+    this._cells = this.createEmptyBoard(width, height);
+    this.initializeCellNeighbors();
+    this.placeMines(mines, seed);
+    this._mines = mines;
+  }
+
+  private createEmptyBoard(width: number, height: number): Cell[][] {
+    const cells = Array.from({ length: height }, (_, y) =>
+      Array.from({ length: width }, (_, x) => new Cell(0, { x, y }))
+    );
+    return cells;
+  }
+
+  private initializeCellNeighbors(): void {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         const neighbors = this.getNeighbors(x, y);
-        this.cells[y][x].setNeighbors(neighbors);
+        this.cell(x, y).setNeighbors(neighbors);
       }
     }
+  }
+
+  private placeMines(mines: number, seed?: string): void {
+    const rng = seedrandom(seed);
+
+    let placedMines = 0;
+    while (placedMines < mines) {
+      const x = Math.floor(rng() * this.width);
+      const y = Math.floor(rng() * this.height);
+      if (!this.cell(x, y).isMine()) {
+        this.placeMine(x, y);
+        placedMines++;
+      }
+    }
+  }
+
+  private placeMine(x: number, y: number): void {
+    this.cell(x, y).value = -1;
+    this.cell(x, y).forEachNeighbor((neighbor) => {
+      // Update the count of non-mine neighbors
+      if (!neighbor.isMine()) {
+        neighbor.value++;
+      }
+    });
   }
 
   private getNeighbors(x: number, y: number): Cell[] {
@@ -60,205 +87,9 @@ export class Board {
       const nx = x + dx;
       const ny = y + dy;
       if (nx >= 0 && ny >= 0 && nx < this.width && ny < this.height) {
-        neighbors.push(this.cells[ny][nx]);
+        neighbors.push(this._cells[ny][nx]);
       }
     }
     return neighbors;
-  }
-
-  private incrementNeighboringCells(x: number, y: number): void {
-    const neighbors = this.getNeighbors(x, y);
-    neighbors.forEach((neighbor) => {
-      if (neighbor.value !== -1) {
-        neighbor.value++;
-      }
-    });
-  }
-
-  private isMine(x: number, y: number): boolean {
-    return this.cells[y][x].value === -1;
-  }
-
-  private placeMine(x: number, y: number): void {
-    this.cells[y][x].value = -1;
-    this.cells[y][x].markerState = MarkerState.Mine;
-    this.incrementNeighboringCells(x, y);
-  }
-
-  private revealZeroNeighbors(x: number, y: number): void {
-    const stack: Cell[] = [this.getCell(x, y)];
-    const visited = new Set<Cell>();
-
-    while (stack.length > 0) {
-      const currentCell = stack.pop();
-      if (!currentCell || visited.has(currentCell)) continue;
-
-      visited.add(currentCell);
-
-      currentCell.forEachNeighbor((neighbor) => {
-        if (
-          neighbor.visualState === VisualState.Closed &&
-          neighbor.value !== -1
-        ) {
-          neighbor.visualState = VisualState.Open;
-          if (neighbor.value === 0) {
-            stack.push(neighbor);
-          }
-        }
-      });
-    }
-  }
-
-  private revealAllMines(): void {
-    this.cells.flat().forEach((cell) => {
-      if (cell.value === -1) {
-        cell.visualState = VisualState.Open;
-      }
-    });
-  }
-
-  // If user clicked a number that already has the correct number of flagged neighbors, open all other neighbors
-  private maybeChordCell(x: number, y: number): void {
-    const cell = this.getCell(x, y);
-    const neighbors = this.getNeighbors(x, y);
-    const flaggedNeighbors = neighbors.filter(
-      (neighbor) => neighbor.markerState === MarkerState.Flagged
-    );
-
-    if (flaggedNeighbors.length !== cell.value) return;
-    neighbors.forEach((neighbor) => {
-      if (neighbor.visualState === VisualState.Closed) {
-        this.openCell(neighbor.coords[0], neighbor.coords[1]);
-      }
-    });
-  }
-
-  private maybeFlagChordCell(x: number, y: number): void {
-    const cell = this.getCell(x, y);
-    const neighbors = this.getNeighbors(x, y);
-    const closedNeighbors = neighbors.filter(
-      (neighbor) => neighbor.visualState === VisualState.Closed
-    );
-    if (closedNeighbors.length !== cell.value) return;
-    closedNeighbors.forEach((neighbor) => {
-      if (neighbor.markerState !== MarkerState.Flagged) {
-        this.flagCell(neighbor.coords[0], neighbor.coords[1]);
-      }
-    });
-  }
-
-  public openCell(x: number, y: number): void {
-    if (this.gameOver) return;
-
-    const cell = this.getCell(x, y);
-    if (
-      cell.markerState === MarkerState.Flagged ||
-      cell.markerState === MarkerState.Guessed
-    )
-      return;
-
-    if (cell.visualState === VisualState.Closed) {
-      cell.visualState = VisualState.Open;
-      if (cell.value === 0) {
-        this.revealZeroNeighbors(x, y);
-      }
-      if (cell.value === -1) {
-        this.revealAllMines();
-        cell.visualState = VisualState.Exploded;
-        this.gameOver = true;
-      }
-    } else if (cell.visualState === VisualState.Open) {
-      this.maybeChordCell(x, y);
-    }
-
-    if (this.flags === this.mines) {
-      let allFlagsCorrect = true;
-      this.cells.flat().forEach((cell) => {
-        if (cell.markerState === MarkerState.Flagged && cell.value !== -1) {
-          allFlagsCorrect = false;
-        }
-      });
-      if (allFlagsCorrect) {
-        this.gameOver = true;
-      }
-    }
-  }
-
-  public flagCell(x: number, y: number): void {
-    if (this.gameOver) return;
-
-    const cell = this.getCell(x, y);
-    if (cell.visualState === VisualState.Closed) {
-      if (cell.markerState === MarkerState.Flagged) {
-        cell.markerState = MarkerState.None;
-      } else {
-        cell.markerState = MarkerState.Flagged;
-      }
-    } else if (cell.visualState === VisualState.Open) {
-      this.maybeFlagChordCell(x, y);
-    }
-  }
-
-  public getCell(x: number, y: number): Cell {
-    return this.cells[y][x];
-  }
-
-  public toString(): string {
-    return this.cells
-      .map((row) =>
-        row
-          .map((cell) => {
-            if (cell.visualState === VisualState.Open) {
-              return cell.value.toString();
-            }
-            if (cell.markerState === MarkerState.Flagged) {
-              return "F";
-            }
-            if (cell.markerState === MarkerState.Guessed) {
-              return "G";
-            }
-            return "C"; // Closed
-          })
-          .join(" ")
-      )
-      .join("\n");
-  }
-
-  public static fromString(boardString: string): Board {
-    const rows = boardString
-      .trim()
-      .split("\n")
-      .map((row) =>
-        row.split(" ").map((cell) => {
-          if (cell === "C") return -1; // Closed cell
-          if (cell === "F") return 10; // Flagged cell
-          return parseInt(cell);
-        })
-      );
-    return new Board(rows);
-  }
-
-  public static fromRandomSeed(
-    seed: number,
-    width: number,
-    height: number,
-    mines: number
-  ): Board {
-    const rng = seedrandom(seed.toString());
-    const cells = Array.from({ length: height }, () => Array(width).fill(0));
-    let placedMines = 0;
-
-    const board = new Board(cells);
-
-    while (placedMines < mines) {
-      const x = Math.floor(rng() * width);
-      const y = Math.floor(rng() * height);
-      if (!board.isMine(x, y)) {
-        board.placeMine(x, y);
-        placedMines++;
-      }
-    }
-
-    return board;
   }
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { GameButtonState } from "../models/GameState";
 
 const ButtonContainer = styled.button`
   align-items: center;
@@ -26,16 +27,32 @@ const ButtonContainer = styled.button`
 `;
 interface GameButtonProps {
   onClick: () => void;
-  isMouseButtonDown: boolean;
+  gameButtonState: GameButtonState;
 }
+
+const getButtonFace = (gameButtonState: GameButtonState): string => {
+  switch (gameButtonState) {
+    case "mousedown":
+      return "😯";
+    case "win":
+      return "😎";
+    case "lose":
+      return "😵";
+    case "none":
+    default:
+      return "🙂";
+  }
+};
 
 const GameButton: React.FC<GameButtonProps> = ({
   onClick,
-  isMouseButtonDown,
+  gameButtonState,
 }) => {
-  const face = isMouseButtonDown ? "😯" : "🙂";
-
-  return <ButtonContainer onClick={onClick}>{face}</ButtonContainer>;
+  return (
+    <ButtonContainer onClick={onClick}>
+      {getButtonFace(gameButtonState)}
+    </ButtonContainer>
+  );
 };
 
 export default GameButton;

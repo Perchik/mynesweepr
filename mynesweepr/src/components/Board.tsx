@@ -20,20 +20,22 @@ interface BoardProps {
 }
 
 const Board: React.FC<BoardProps> = ({ board, onClick }) => {
+  console.log("Board component re-render");
+
   return (
     <GameBoard>
       {Array.from({ length: board.height }).map((_, rowIndex) => (
         <Row key={rowIndex}>
           {Array.from({ length: board.width }).map((_, colIndex) => {
-            const cell = board.getCell(colIndex, rowIndex);
+            const cell = board.cell(rowIndex, colIndex);
             return (
               <Cell
                 key={rowIndex * board.width + colIndex}
                 cell={cell}
-                onClick={() => onClick(colIndex, rowIndex, true)}
+                onClick={() => onClick(rowIndex, colIndex, true)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  onClick(colIndex, rowIndex, false);
+                  onClick(rowIndex, colIndex, false);
                 }}
               />
             );
