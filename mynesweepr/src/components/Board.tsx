@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import Cell from "./Cell";
+import Cell from "../cell/Cell.component";
 import { Board as BoardModel } from "../models/Board";
 
 const GameBoard = styled.div`

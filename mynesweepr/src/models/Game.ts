@@ -1,5 +1,5 @@
 import { Board } from "./Board";
-import { VisualState, MarkerState } from "./CellStates";
+import { VisualState, MarkerState } from "../cell/CellStates";
 import { GameState } from "../models/GameState";
 
 export class Game {

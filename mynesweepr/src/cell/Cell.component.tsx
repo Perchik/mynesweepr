@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from "react";
 import styled from "styled-components";
 
-import { Cell as CellModel } from "../models/Cell";
-import { VisualState, MarkerState } from "../models/CellStates";
+import { Cell as CellModel } from "./Cell";
+import { VisualState, MarkerState } from "./CellStates";
 
 const getCellBackgroundColor = (visualState: VisualState) => {
   switch (visualState) {
