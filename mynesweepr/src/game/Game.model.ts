@@ -39,7 +39,7 @@ export class Game {
     mines: number,
     seed?: string
   ) {
-    this.board = new Board(width, height, mines, "42");
+    this.board = new Board(width, height, mines, seed);
     this.gameState = "inprogress";
     this._numFlags = 0;
     this._mines = mines;

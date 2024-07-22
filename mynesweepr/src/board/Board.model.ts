@@ -20,9 +20,11 @@ export class Board {
   get height(): number {
     return this._cells.length;
   }
+
   get unopenedCells(): Cell[] {
     return this._cells.flat().filter((cell) => !cell.isOpen());
   }
+
   get mineCells(): Cell[] {
     return this._cells.flat().filter((cell) => cell.isMine());
   }
@@ -73,9 +75,7 @@ export class Board {
     this.cell(x, y).forEachNeighbor((neighbor) => {
       // Update the count of non-mine neighbors
       if (!neighbor.isMine()) {
-        this.cell(neighbor.position.x, neighbor.position.y).setValue(
-          this.cell(neighbor.position.x, neighbor.position.y).value + 1
-        );
+        neighbor.setValue(neighbor.value + 1);
       }
     });
   }

@@ -1,8 +1,6 @@
-import { produce, immerable, Draft } from "immer";
 import { VisualState, MarkerState } from "./CellStates";
 
 class Cell {
-  static [immerable] = true;
   value: number;
   position: { x: number; y: number };
   visualState: VisualState;
@@ -16,32 +14,27 @@ class Cell {
     this.markerState = MarkerState.None;
   }
 
-  setValue = (value: number): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      draft.value = value;
-    });
-  };
+  setValue(value: number): void {
+    this.value = value;
+  }
 
-  setNeighbors = (neighbors: Cell[]): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      draft.neighbors = neighbors;
-    });
-  };
+  setNeighbors(neighbors: Cell[]): void {
+    this.neighbors = neighbors;
+  }
 
   forEachNeighbor(callback: (neighbor: Cell) => void): void {
     this.neighbors.forEach(callback);
   }
 
-  maybeOpen = (): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      if (draft.isMarked() || draft.isOpen()) return;
+  maybeOpen(): boolean {
+    if (this.isMarked() || this.isOpen()) return false;
 
-      draft.visualState = VisualState.Open;
-      if (draft.isMine()) {
-        draft.markerState = MarkerState.Mine;
-      }
-    });
-  };
+    this.visualState = VisualState.Open;
+    if (this.isMine()) {
+      this.markerState = MarkerState.Mine;
+    }
+    return true;
+  }
 
   isOpen(): boolean {
     return this.visualState === VisualState.Open;
@@ -62,31 +55,23 @@ class Cell {
     );
   }
 
-  toggleFlag = (useGuessing = false): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      if (draft.markerState === MarkerState.None) {
-        draft.markerState = MarkerState.Flagged;
-      } else if (draft.markerState === MarkerState.Flagged) {
-        draft.markerState = useGuessing
-          ? MarkerState.Guessed
-          : MarkerState.None;
-      } else if (draft.markerState === MarkerState.Guessed) {
-        draft.markerState = MarkerState.None;
-      }
-    });
-  };
+  toggleFlag(useGuessing = false): void {
+    if (this.markerState === MarkerState.None) {
+      this.markerState = MarkerState.Flagged;
+    } else if (this.markerState === MarkerState.Flagged) {
+      this.markerState = useGuessing ? MarkerState.Guessed : MarkerState.None;
+    } else if (this.markerState === MarkerState.Guessed) {
+      this.markerState = MarkerState.None;
+    }
+  }
 
-  open = (): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      draft.visualState = VisualState.Open;
-    });
-  };
+  open(): void {
+    this.visualState = VisualState.Open;
+  }
 
-  flag = (): Cell => {
-    return produce(this, (draft: Draft<Cell>) => {
-      draft.markerState = MarkerState.Flagged;
-    });
-  };
+  flag(): void {
+    this.markerState = MarkerState.Flagged;
+  }
 }
 
 export { Cell };
