@@ -1,15 +1,15 @@
 import { Board } from "../board/Board.model";
 import { VisualState, MarkerState } from "../cell/Cell.model";
 
-export type GameButtonState = "mousedown" | "win" | "lose" | "none";
-export type GameState = "inprogress" | "win" | "lose" | "none";
+export type GameState = "inprogress" | "win" | "lose" | "new" | "none";
 
 export class Game {
   board: Board;
-  gameState: GameState = "none";
+  gameState: GameState = "new";
   _numFlags = 0;
   _mines: number = 0;
   _elapsedTime = 0;
+
   private timerRef: number | null = null;
   private startTime: number | null = null;
   private openQueue: Array<{ x: number; y: number }> = [];

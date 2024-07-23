@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGameContext } from "../context/GameContext";
 import { useSettingsContext } from "../context/SettingsContext";
 import styled from "styled-components";
@@ -27,21 +27,25 @@ const ButtonContainer = styled.button`
   border-color: #fff #808080 #808080 #fff;
 `;
 
-const getButtonFace = (gameState: string): string => {
+const getButtonFace = (gameState: string, isMouseDown: boolean): string => {
   switch (gameState) {
     case "win":
       return "😎";
     case "lose":
       return "😵";
     case "inprogress":
+      return isMouseDown ? "😯" : "🙂";
     default:
       return "🙂";
   }
 };
 
 const GameButton: React.FC = () => {
-  const { gameState, startNewGame } = useGameContext();
+  const { gameState, isMouseDown, startNewGame } = useGameContext();
   const { settings } = useSettingsContext();
+  const [buttonFace, setButtonFace] = useState<string>(
+    getButtonFace(gameState, isMouseDown)
+  );
 
   const handleNewGame = () => {
     const difficultySettings = {
@@ -54,10 +58,12 @@ const GameButton: React.FC = () => {
     startNewGame(width, height, mines);
   };
 
+  useEffect(() => {
+    setButtonFace(getButtonFace(gameState, isMouseDown));
+  }, [gameState, isMouseDown]);
+
   return (
-    <ButtonContainer onClick={handleNewGame}>
-      {getButtonFace(gameState)}
-    </ButtonContainer>
+    <ButtonContainer onClick={handleNewGame}>{buttonFace}</ButtonContainer>
   );
 };
 

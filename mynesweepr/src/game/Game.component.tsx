@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import BoardComponent from "../board/Board.component";
 import GameButton from "./GameButton";
 import { useGameContext } from "../context/GameContext";
 import DigitalCounter from "../components/DigitalCounter";
-import { useSettingsContext } from "../context/SettingsContext";
 
 const GameContainer = styled.div`
   display: inline-block;
@@ -30,29 +29,13 @@ const Header = styled.div`
 const Game: React.FC = () => {
   const {
     game,
-    startNewGame,
-    gameState,
     elapsedTime,
     flags,
     handleLeftClick,
     handleCellRightClick,
+    handleMouseDown,
+    handleMouseUp,
   } = useGameContext();
-  const { settings } = useSettingsContext();
-  const [gameButtonState, setGameButtonState] = useState<string>("none");
-
-  useEffect(() => {
-    if (game.gameOver) {
-      setGameButtonState(game.gameState === "win" ? "win" : "lose");
-    }
-  }, [game.gameState, game.gameOver]);
-
-  const handleMouseDown = () => {
-    setGameButtonState("mousedown");
-  };
-
-  const handleMouseUp = () => {
-    setGameButtonState(game.gameState);
-  };
 
   return (
     <>

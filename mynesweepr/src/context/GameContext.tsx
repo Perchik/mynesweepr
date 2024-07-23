@@ -19,6 +19,9 @@ interface GameContextType {
   ) => void;
   elapsedTime: number;
   flags: number;
+  isMouseDown: boolean;
+  handleMouseDown: () => void;
+  handleMouseUp: () => void;
   handleLeftClick: (x: number, y: number) => void;
   handleCellRightClick: (x: number, y: number, e: React.MouseEvent) => void;
 }
@@ -33,6 +36,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameState, setGameState] = useState<string>("none");
   const [flags, setFlags] = useState(0);
+  const [isMouseDown, setIsMouseDown] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -48,8 +52,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [game]);
 
+  const handleMouseDown = useCallback(() => {
+    setIsMouseDown(true);
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    setIsMouseDown(false);
+  }, []);
+
   const handleClick = useCallback(
     (x: number, y: number, primary: boolean) => {
+      if (gameState === "new") {
+        setGameState("inprogress");
+      }
       if (primary) {
         game.openCell(x, y);
       } else {
@@ -60,7 +75,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       setGameState(game.gameState);
       setFlags(game.flags);
     },
-    [game]
+    [game, gameState]
   );
 
   const handleLeftClick = useCallback(
@@ -99,6 +114,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         startNewGame,
         elapsedTime,
         flags,
+        handleMouseDown,
+        handleMouseUp,
+        isMouseDown,
         handleLeftClick,
         handleCellRightClick,
       }}
