@@ -1,4 +1,16 @@
-import { VisualState, MarkerState } from "./CellStates";
+export enum VisualState {
+  Open,
+  Closed,
+  Pressed,
+  Exploded,
+}
+
+export enum MarkerState {
+  None,
+  Flagged,
+  Guessed,
+  Mine,
+}
 
 class Cell {
   value: number;
@@ -55,7 +67,7 @@ class Cell {
     );
   }
 
-  toggleFlag(useGuessing = false): void {
+  toggleFlag(useGuessing = false): boolean {
     if (this.markerState === MarkerState.None) {
       this.markerState = MarkerState.Flagged;
     } else if (this.markerState === MarkerState.Flagged) {
@@ -63,6 +75,7 @@ class Cell {
     } else if (this.markerState === MarkerState.Guessed) {
       this.markerState = MarkerState.None;
     }
+    return this.markerState === MarkerState.Flagged;
   }
 
   open(): void {

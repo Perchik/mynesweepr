@@ -1,6 +1,8 @@
 import { Board } from "../board/Board.model";
-import { VisualState, MarkerState } from "../cell/CellStates";
-import { GameState } from "./GameState";
+import { VisualState, MarkerState } from "../cell/Cell.model";
+
+export type GameButtonState = "mousedown" | "win" | "lose" | "none";
+export type GameState = "inprogress" | "win" | "lose" | "none";
 
 export class Game {
   board: Board;
@@ -115,6 +117,20 @@ export class Game {
       if (hasFlag) this._numFlags++;
       else this._numFlags--;
     }
+  }
+
+  clone(): Game {
+    const clonedGame = new Game(
+      this.board.width,
+      this.board.height,
+      this._mines
+    );
+    clonedGame.board = this.board;
+    clonedGame.gameState = this.gameState;
+    clonedGame._numFlags = this._numFlags;
+    clonedGame._elapsedTime = this._elapsedTime;
+    clonedGame.openQueue = [...this.openQueue];
+    return clonedGame;
   }
 
   private maybeEndGame(exploded: boolean = false): void {

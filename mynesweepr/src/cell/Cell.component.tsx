@@ -1,7 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { VisualState, MarkerState } from "./CellStates";
-import useCellStore from "./useCellStore";
+import { Cell as CellModel } from "./Cell.model";
+
+export enum VisualState {
+  Open,
+  Closed,
+  Pressed,
+  Exploded,
+}
+
+export enum MarkerState {
+  None,
+  Flagged,
+  Guessed,
+  Mine,
+}
 
 const getCellBackgroundColor = (visualState: VisualState) => {
   switch (visualState) {
@@ -44,10 +57,7 @@ const CellContainer = styled.div.attrs<{
 }>(({ visualState, cellValue }) => ({
   visualState,
   cellValue,
-}))<{
-  visualState: VisualState;
-  cellValue: number;
-}>`
+}))<{ visualState: VisualState; cellValue: number }>`
   width: 30px;
   height: 30px;
   display: flex;
@@ -82,8 +92,7 @@ const CellIcon = styled.img`
 `;
 
 interface CellProps {
-  x: number;
-  y: number;
+  cell: CellModel;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
@@ -100,22 +109,21 @@ const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
   }
 };
 
-const Cell: React.FC<CellProps> = ({ x, y, onClick, onContextMenu }) => {
-  const { cells } = useCellStore();
-  const cell = cells[y] && cells[y][x];
+const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
+  const [visualState, setVisualState] = useState(cell.visualState);
+  const [markerState, setMarkerState] = useState(cell.markerState);
 
-  if (!cell) {
-    console.error(`Cell at (${x}, ${y}) not found`);
-    return null;
-  }
+  useEffect(() => {
+    setVisualState(cell.visualState);
+    setMarkerState(cell.markerState);
+  }, [cell.visualState, cell.markerState]);
 
   return (
     <CellContainer
       onClick={onClick}
       onContextMenu={onContextMenu}
-      className="cell"
       cellValue={cell.value}
-      visualState={cell.visualState}
+      visualState={visualState}
     >
       {cell.isOpen() || cell.visualState === VisualState.Exploded ? (
         cell.isMine() ? (
@@ -124,7 +132,7 @@ const Cell: React.FC<CellProps> = ({ x, y, onClick, onContextMenu }) => {
           cell.value
         )
       ) : (
-        getMarkerIcon(cell.markerState)
+        getMarkerIcon(markerState)
       )}
     </CellContainer>
   );

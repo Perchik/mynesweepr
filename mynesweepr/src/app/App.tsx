@@ -1,19 +1,25 @@
 import React from "react";
-import "./App.css";
-import MinesweeperGame from "./game/MinesweeperGame";
-import Footer from "./components/Footer";
-import GlobalStyle from "./globalStyles";
+import GameComponent from "../game/Game.component";
+import GameButton from "../game/GameButton";
+import SettingsComponent from "../settings/Settings.component";
+import DifficultySelector from "../settings/DifficultySelector.component";
+import { GameProvider } from "../context/GameContext";
+import { SettingsProvider } from "../context/SettingsContext";
+import GlobalStyles from "./globalStyles";
 
 const App: React.FC = () => {
   return (
-    <>
-      <GlobalStyle />
-      <div className="App">
-        <h1>Minesweeper Game</h1>
-        <MinesweeperGame />
-        <Footer />
-      </div>
-    </>
+    <SettingsProvider>
+      <GameProvider>
+        <GlobalStyles />
+        <div>
+          <SettingsComponent />
+          <DifficultySelector />
+          <GameComponent />
+          <GameButton />
+        </div>
+      </GameProvider>
+    </SettingsProvider>
   );
 };
 
