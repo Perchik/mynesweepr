@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import Cell from "../cell/Cell.component";
 import { Board as BoardModel } from "./Board.model";

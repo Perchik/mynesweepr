@@ -6,12 +6,10 @@ export type GameState = "inprogress" | "win" | "lose" | "new" | "none";
 export class Game {
   board: Board;
   gameState: GameState = "new";
-  _numFlags = 0;
-  _mines: number = 0;
-  _elapsedTime = 0;
+  elapsedTime = 0;
 
-  private timerRef: number | null = null;
-  private startTime: number | null = null;
+  private _numFlags = 0;
+  private _mines: number = 0;
   private openQueue: Array<{ x: number; y: number }> = [];
 
   get gameOver(): boolean {
@@ -26,10 +24,6 @@ export class Game {
     return this._numFlags;
   }
 
-  get elapsedTime(): number {
-    return this._elapsedTime;
-  }
-
   constructor(width: number, height: number, mines: number, seed?: string) {
     this.board = new Board(width, height, mines, seed);
     this.startNewGame(width, height, mines, seed);
@@ -40,43 +34,18 @@ export class Game {
     height: number,
     mines: number,
     seed?: string
-  ) {
+  ): void {
     this.board = new Board(width, height, mines, seed);
-    this.gameState = "inprogress";
+    this.gameState = "new";
     this._numFlags = 0;
     this._mines = mines;
-    this._elapsedTime = 0;
-    this.startTime = null;
-    if (this.timerRef !== null) {
-      clearInterval(this.timerRef);
-      this.timerRef = null;
-    }
+    this.elapsedTime = 0;
     this.openQueue = [];
-  }
-
-  startTimer(): void {
-    this.startTime = Date.now();
-    this.timerRef = window.setInterval(() => {
-      this._elapsedTime = Math.floor((Date.now() - this.startTime!) / 1000);
-      if (this._elapsedTime >= 999) {
-        this._elapsedTime = 999;
-        this.stopTimer();
-      }
-    }, 1000);
-  }
-
-  stopTimer(): void {
-    if (this.timerRef !== null) {
-      clearInterval(this.timerRef);
-      this.timerRef = null;
-    }
   }
 
   openCell(x: number, y: number): void {
     if (this.gameOver) return;
-    if (this.startTime === null) {
-      this.startTimer();
-    }
+
     const cell = this.board.cell(x, y);
     if (cell.isOpen()) {
       this.maybeChordCell(x, y);
@@ -128,7 +97,7 @@ export class Game {
     clonedGame.board = this.board;
     clonedGame.gameState = this.gameState;
     clonedGame._numFlags = this._numFlags;
-    clonedGame._elapsedTime = this._elapsedTime;
+    clonedGame.elapsedTime = this.elapsedTime;
     clonedGame.openQueue = [...this.openQueue];
     return clonedGame;
   }
@@ -136,11 +105,9 @@ export class Game {
   private maybeEndGame(exploded: boolean = false): void {
     if (exploded) {
       this.gameState = "lose";
-      this.stopTimer();
       this.revealAllMines();
     } else if (this.board.unopenedCells.length === this.mines) {
       this.gameState = "win";
-      this.stopTimer();
     }
   }
 
@@ -188,10 +155,7 @@ export class Game {
 
   private openUnmarkedNeighbors(x: number, y: number): void {
     this.board.cell(x, y).neighbors.forEach((neighbor) => {
-      this.openQueue.push({
-        x: neighbor.position.x,
-        y: neighbor.position.y,
-      });
+      this.openQueue.push({ x: neighbor.position.x, y: neighbor.position.y });
     });
 
     this.processOpenQueue();

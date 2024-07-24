@@ -3,10 +3,12 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   useCallback,
 } from "react";
 import { Game } from "../game/Game.model";
 import { useSettingsContext } from "./SettingsContext";
+import Timer from "../utils/Timer";
 
 interface GameContextType {
   game: Game;
@@ -34,23 +36,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const { settings } = useSettingsContext();
   const [game, setGame] = useState(new Game(9, 9, 10));
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [gameState, setGameState] = useState<string>("none");
   const [flags, setFlags] = useState(0);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+  const timer = useMemo(() => new Timer((time) => setElapsedTime(time)), []);
+
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (game.gameState === "inprogress") {
-      interval = setInterval(() => {
-        setElapsedTime(game.elapsedTime);
-      }, 1000);
+      timer.start();
+    } else {
+      timer.stop();
     }
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
+      timer.stop();
     };
-  }, [game]);
+  }, [game.gameState, timer]);
 
   const handleMouseDown = useCallback(() => {
     setIsMouseDown(true);
@@ -62,8 +62,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleClick = useCallback(
     (x: number, y: number, primary: boolean) => {
-      if (gameState === "new") {
-        setGameState("inprogress");
+      if (game.gameState === "new") {
+        timer.start();
+        game.gameState = "inprogress";
       }
       if (primary) {
         game.openCell(x, y);
@@ -71,16 +72,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         game.flagCell(x, y);
       }
 
-      setGame(game.clone());
-      setGameState(game.gameState);
+      if (game.gameOver) {
+        timer.stop();
+      }
       setFlags(game.flags);
+      setGame(game.clone());
     },
-    [game, gameState]
+    [game, timer]
   );
 
   const handleLeftClick = useCallback(
     (x: number, y: number) => {
-      const primary = settings.swapLeftRightClick ? false : true;
+      const primary = !settings.swapLeftRightClick;
       handleClick(x, y, primary);
     },
     [settings.swapLeftRightClick, handleClick]
@@ -89,7 +92,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleCellRightClick = useCallback(
     (x: number, y: number, e: React.MouseEvent) => {
       e.preventDefault();
-      const primary = settings.swapLeftRightClick ? true : false;
+      const primary = settings.swapLeftRightClick;
       handleClick(x, y, primary);
     },
     [settings.swapLeftRightClick, handleClick]
@@ -99,24 +102,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     (width: number, height: number, mines: number, seed?: string) => {
       const newGame = new Game(width, height, mines, seed);
       setGame(newGame);
+      setFlags(newGame.flags);
+      timer.reset();
+
       setElapsedTime(0);
-      setGameState("inprogress");
-      setFlags(0);
     },
-    []
+    [timer]
   );
 
   return (
     <GameContext.Provider
       value={{
         game,
-        gameState,
-        startNewGame,
+        gameState: game.gameState,
         elapsedTime,
         flags,
+        startNewGame,
+        isMouseDown,
         handleMouseDown,
         handleMouseUp,
-        isMouseDown,
         handleLeftClick,
         handleCellRightClick,
       }}

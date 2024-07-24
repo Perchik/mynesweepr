@@ -43,7 +43,7 @@ const Game: React.FC = () => {
         <Header>
           <DigitalCounter value={game.mines - flags} />
           <GameButton />
-          <DigitalCounter value={elapsedTime} />
+          <DigitalCounter value={Math.floor(elapsedTime / 1000)} />
         </Header>
         <BoardComponent
           board={game.board}

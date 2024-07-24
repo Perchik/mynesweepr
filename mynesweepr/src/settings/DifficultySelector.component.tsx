@@ -19,6 +19,10 @@ const DifficultySelectorContainer = styled(FormControl)`
   margin-bottom: 20px;
 `;
 
+const HorizontalRadioGroup = styled(RadioGroup)`
+  flex-direction: row;
+`;
+
 type Difficulty = "beginner" | "intermediate" | "expert";
 
 const difficultySettings = {
@@ -63,7 +67,7 @@ const DifficultySelector: React.FC = () => {
     <div>
       <DifficultySelectorContainer>
         <FormLabel component="legend">Select Difficulty</FormLabel>
-        <RadioGroup
+        <HorizontalRadioGroup
           aria-label="difficulty"
           name="difficulty"
           value={settings.selectedDifficulty}
@@ -80,7 +84,7 @@ const DifficultySelector: React.FC = () => {
             label="Intermediate"
           />
           <FormControlLabel value="expert" control={<Radio />} label="Expert" />
-        </RadioGroup>
+        </HorizontalRadioGroup>
       </DifficultySelectorContainer>
 
       <Dialog open={dialogOpen} onClose={() => handleDialogClose(false)}>
