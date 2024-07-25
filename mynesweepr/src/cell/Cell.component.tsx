@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Cell as CellModel } from "./Cell.model";
+import { useGameContext } from "../context/GameContext";
 
 export enum VisualState {
   Open,
@@ -97,9 +98,13 @@ interface CellProps {
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
+const getMarkerIcon = (
+  markerState: MarkerState,
+  viewMode: string = "normal"
+): JSX.Element | null => {
   switch (markerState) {
     case MarkerState.Flagged:
+      if (viewMode === "reduced") return <CellIcon src="icons/blueFlag.svg" />;
       return <CellIcon src="icons/flag.svg" alt="flag" />;
     case MarkerState.Guessed:
       return <CellIcon src="icons/question.svg" alt="question mark" />;
@@ -112,6 +117,7 @@ const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
 const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   const [visualState, setVisualState] = useState(cell.visualState);
   const [markerState, setMarkerState] = useState(cell.markerState);
+  const { viewMode } = useGameContext();
 
   useEffect(() => {
     setVisualState(cell.visualState);
@@ -132,7 +138,7 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
           cell.value
         )
       ) : (
-        getMarkerIcon(markerState)
+        getMarkerIcon(markerState, viewMode)
       )}
     </CellContainer>
   );

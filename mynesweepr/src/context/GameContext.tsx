@@ -9,6 +9,7 @@ import React, {
 import { Game } from "../game/Game.model";
 import { useSettingsContext } from "./SettingsContext";
 import Timer from "../utils/Timer";
+import { Cell } from "../cell/Cell.model";
 
 interface GameContextType {
   game: Game;
@@ -19,9 +20,12 @@ interface GameContextType {
     mines: number,
     seed?: string
   ) => void;
+  board: Cell[][];
   elapsedTime: number;
   flags: number;
   isMouseDown: boolean;
+  viewMode: "normal" | "reduced";
+  toggleViewMode: () => void;
   handleMouseDown: () => void;
   handleMouseUp: () => void;
   handleLeftClick: (x: number, y: number) => void;
@@ -38,6 +42,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [flags, setFlags] = useState(0);
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const [viewMode, setViewMode] = useState<"normal" | "reduced">("normal");
+  const [board, setBoard] = useState(game.board.cells);
 
   const timer = useMemo(() => new Timer((time) => setElapsedTime(time)), []);
 
@@ -51,6 +57,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       timer.stop();
     };
   }, [game.gameState, timer]);
+
+  useEffect(() => {
+    setBoard(game.board.cells);
+  }, [game]);
 
   const handleMouseDown = useCallback(() => {
     setIsMouseDown(true);
@@ -110,6 +120,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     [timer]
   );
 
+  const toggleViewMode = useCallback(() => {
+    setViewMode((prevMode) => (prevMode === "normal" ? "reduced" : "normal"));
+  }, []);
+
   return (
     <GameContext.Provider
       value={{
@@ -117,8 +131,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         gameState: game.gameState,
         elapsedTime,
         flags,
+        board,
         startNewGame,
         isMouseDown,
+        viewMode,
+        toggleViewMode,
         handleMouseDown,
         handleMouseUp,
         handleLeftClick,

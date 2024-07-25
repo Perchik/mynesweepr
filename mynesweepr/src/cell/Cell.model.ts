@@ -26,6 +26,12 @@ class Cell {
     this.markerState = MarkerState.None;
   }
 
+  incrementValue() {
+    this.value++;
+  }
+  decrementValue() {
+    Math.max(this.value--, 0);
+  }
   setValue(value: number): void {
     this.value = value;
   }

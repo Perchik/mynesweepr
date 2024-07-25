@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { useGameContext } from "../context/GameContext";
 
 const CounterContainer = styled.div`
   display: flex;
@@ -18,34 +19,36 @@ interface DigitalCounterProps {
   value: number;
 }
 
-const getDigitImage = (digit: number): string => {
+const getDigitImage = (digit: number, viewMode: string = "normal"): string => {
+  const color = viewMode === "reduced" ? "blue" : "red";
   switch (digit) {
     case 0:
-      return "icons/digits/red/d0.svg";
+      return `icons/digits/${color}/d0.svg`;
     case 1:
-      return "icons/digits/red/d1.svg";
+      return `icons/digits/${color}/d1.svg`;
     case 2:
-      return "icons/digits/red/d2.svg";
+      return `icons/digits/${color}/d2.svg`;
     case 3:
-      return "icons/digits/red/d3.svg";
+      return `icons/digits/${color}/d3.svg`;
     case 4:
-      return "icons/digits/red/d4.svg";
+      return `icons/digits/${color}/d4.svg`;
     case 5:
-      return "icons/digits/red/d5.svg";
+      return `icons/digits/${color}/d5.svg`;
     case 6:
-      return "icons/digits/red/d6.svg";
+      return `icons/digits/${color}/d6.svg`;
     case 7:
-      return "icons/digits/red/d7.svg";
+      return `icons/digits/${color}/d7.svg`;
     case 8:
-      return "icons/digits/red/d8.svg";
+      return `icons/digits/${color}/d8.svg`;
     case 9:
-      return "icons/digits/red/d9.svg";
+      return `icons/digits/${color}/d9.svg`;
     default:
-      return "icons/digits/red/dOff.svg";
+      return `icons/digits/${color}/dOff.svg`;
   }
 };
 
 const DigitalCounter: React.FC<DigitalCounterProps> = ({ value }) => {
+  const { viewMode } = useGameContext();
   const digits = value
     .toString()
     .padStart(3, " ")
@@ -55,7 +58,11 @@ const DigitalCounter: React.FC<DigitalCounterProps> = ({ value }) => {
   return (
     <CounterContainer>
       {digits.map((digit, index) => (
-        <Digit key={index} src={getDigitImage(digit)} alt={`${digit}`} />
+        <Digit
+          key={index}
+          src={getDigitImage(digit, viewMode)}
+          alt={`${digit}`}
+        />
       ))}
     </CounterContainer>
   );

@@ -40,6 +40,12 @@ export class Board {
     this._mines = mines;
   }
 
+  clone(): Board {
+    const clonedBoard = new Board(this.width, this.height, this._mines);
+    clonedBoard._cells = this.cells;
+    return clonedBoard;
+  }
+
   private createEmptyBoard(width: number, height: number): Cell[][] {
     const cells = Array.from({ length: height }, (_, y) =>
       Array.from({ length: width }, (_, x) => new Cell(0, { x, y }))
@@ -75,7 +81,7 @@ export class Board {
     this.cell(x, y).forEachNeighbor((neighbor) => {
       // Update the count of non-mine neighbors
       if (!neighbor.isMine()) {
-        neighbor.setValue(neighbor.value + 1);
+        neighbor.incrementValue();
       }
     });
   }
