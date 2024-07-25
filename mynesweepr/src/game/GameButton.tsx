@@ -8,20 +8,16 @@ const ButtonContainer = styled.button`
   background-color: #ccc;
   cursor: pointer;
   display: flex;
-  font-size: 30px;
-  height: 50px;
+  font-size: 26px;
+  height: 40px;
   justify-content: center;
-  line-height: 30px;
+  line-height: 26px;
   outline: 2px solid #808080;
   user-select: none;
-  width: 50px;
+  width: 40px;
   &:active {
     border-color: #808080 #fff #fff #808080;
-    font-size: 28px;
-    padding-right: 0;
-    padding-bottom: 2px;
-    align-items: flex-end;
-    justify-content: flex-end;
+    font-size: 23px;
   }
   border: 4px solid #808080;
   border-color: #fff #808080 #808080 #fff;

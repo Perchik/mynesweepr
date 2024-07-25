@@ -69,7 +69,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       if (primary) {
         game.openCell(x, y);
       } else {
-        game.flagCell(x, y);
+        game.flagCell(x, y, settings.useGuessing);
       }
 
       if (game.gameOver) {
@@ -78,7 +78,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       setFlags(game.flags);
       setGame(game.clone());
     },
-    [game, timer]
+    [game, timer, settings.useGuessing]
   );
 
   const handleLeftClick = useCallback(

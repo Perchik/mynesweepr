@@ -4,13 +4,15 @@ import styled from "styled-components";
 const CounterContainer = styled.div`
   display: flex;
   margin: 6px;
+  padding: 2px;
   background-color: #000;
   gap: 3px;
   border: 2px solid #000;
+  border-color: #808080 #fff #fff #808080;
 `;
 
 const Digit = styled.img`
-  height: 40px;
+  height: 36px;
 `;
 interface DigitalCounterProps {
   value: number;
@@ -19,27 +21,27 @@ interface DigitalCounterProps {
 const getDigitImage = (digit: number): string => {
   switch (digit) {
     case 0:
-      return "icons/digits/d0.svg";
+      return "icons/digits/red/d0.svg";
     case 1:
-      return "icons/digits/d1.svg";
+      return "icons/digits/red/d1.svg";
     case 2:
-      return "icons/digits/d2.svg";
+      return "icons/digits/red/d2.svg";
     case 3:
-      return "icons/digits/d3.svg";
+      return "icons/digits/red/d3.svg";
     case 4:
-      return "icons/digits/d4.svg";
+      return "icons/digits/red/d4.svg";
     case 5:
-      return "icons/digits/d5.svg";
+      return "icons/digits/red/d5.svg";
     case 6:
-      return "icons/digits/d6.svg";
+      return "icons/digits/red/d6.svg";
     case 7:
-      return "icons/digits/d7.svg";
+      return "icons/digits/red/d7.svg";
     case 8:
-      return "icons/digits/d8.svg";
+      return "icons/digits/red/d8.svg";
     case 9:
-      return "icons/digits/d9.svg";
+      return "icons/digits/red/d9.svg";
     default:
-      return "icons/digits/dOff.svg";
+      return "icons/digits/red/dOff.svg";
   }
 };
 

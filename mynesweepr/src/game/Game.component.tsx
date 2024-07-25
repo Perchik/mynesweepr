@@ -20,7 +20,7 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   background-color: #bbb;
-  padding: 5px;
+  padding: 3px;
   box-sizing: border-box;
   border: 6px solid;
   border-color: #808080 #fff #fff #808080;
@@ -43,7 +43,9 @@ const Game: React.FC = () => {
         <Header>
           <DigitalCounter value={game.mines - flags} />
           <GameButton />
-          <DigitalCounter value={Math.floor(elapsedTime / 1000)} />
+          <DigitalCounter
+            value={Math.min(Math.floor(elapsedTime / 1000), 999)}
+          />
         </Header>
         <BoardComponent
           board={game.board}

@@ -76,13 +76,13 @@ export class Game {
     this.maybeEndGame();
   }
 
-  flagCell(x: number, y: number): void {
+  flagCell(x: number, y: number, useGuessing: boolean = false): void {
     if (this.gameOver) return;
 
     const cell = this.board.cell(x, y);
     if (cell.isOpen()) this.maybeFlagChordCell(x, y);
     else {
-      const hasFlag = cell.toggleFlag();
+      const hasFlag = cell.toggleFlag(useGuessing);
       if (hasFlag) this._numFlags++;
       else this._numFlags--;
     }
