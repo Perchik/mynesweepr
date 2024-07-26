@@ -65,7 +65,7 @@ export class Game {
         if (!opened) return;
 
         if (cell.isMine) {
-          cell.visualState = VisualState.Exploded;
+          cell.explode();
           this.maybeEndGame(true);
           break;
         } else if (cell.isEmpty) {
@@ -119,7 +119,7 @@ export class Game {
     );
 
     if (flaggedNeighbors.length === cell.value) {
-      neighbors.forEach((neighbor) => {
+      cell.forEachNeighbor((neighbor) => {
         if (!neighbor.isOpen && neighbor.markerState !== MarkerState.Flagged) {
           this.openQueue.push({
             x: neighbor.position.x,
@@ -134,13 +134,11 @@ export class Game {
   private maybeFlagChordCell(x: number, y: number): void {
     const cell = this.board.cell(x, y);
     const neighbors = cell.neighbors;
-    const closedNeighbors = neighbors.filter(
-      (neighbor) => neighbor.visualState === VisualState.Closed
-    );
+    const closedNeighbors = neighbors.filter((neighbor) => !neighbor.isOpen);
     if (closedNeighbors.length !== cell.value) return;
 
     closedNeighbors.forEach((neighbor) => {
-      if (neighbor.markerState !== MarkerState.Flagged) {
+      if (!neighbor.isFlagged) {
         this.flagCell(neighbor.position.x, neighbor.position.y);
       }
     });
@@ -151,7 +149,7 @@ export class Game {
   }
 
   private openUnmarkedNeighbors(x: number, y: number): void {
-    this.board.cell(x, y).neighbors.forEach((neighbor) => {
+    this.board.cell(x, y).forEachNeighbor((neighbor) => {
       this.openQueue.push({ x: neighbor.position.x, y: neighbor.position.y });
     });
 

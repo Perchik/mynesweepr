@@ -2,7 +2,6 @@ export enum VisualState {
   Open,
   Closed,
   Pressed,
-  Exploded,
 }
 
 export enum MarkerState {
@@ -14,13 +13,17 @@ export enum MarkerState {
 
 class Cell {
   private _value: number;
+  private _reducedValue: number;
+
   position: { x: number; y: number };
   visualState: VisualState;
   markerState: MarkerState;
   neighbors: Cell[] = [];
+  isExploded: boolean = false;
 
   constructor(value: number, position: { x: number; y: number }) {
     this._value = value;
+    this._reducedValue = value;
     this.position = position;
     this.visualState = VisualState.Closed;
     this.markerState = MarkerState.None;
@@ -49,12 +52,27 @@ class Cell {
     );
   }
 
-  incrementValue() {
-    this._value++;
+  get isFlagged(): boolean {
+    return this.markerState === MarkerState.Flagged;
   }
 
-  decrementValue() {
-    Math.max(this._value--, 0);
+  open(): void {
+    this.visualState = VisualState.Open;
+  }
+
+  flag(): void {
+    this.markerState = MarkerState.Flagged;
+  }
+
+  explode(): void {
+    this.isExploded = true;
+  }
+  setisMine(): void {
+    this._value = -1;
+  }
+
+  incrementValue() {
+    this._value++;
   }
 
   setNeighbors(neighbors: Cell[]): void {
@@ -86,16 +104,12 @@ class Cell {
     return this.markerState === MarkerState.Flagged;
   }
 
-  open(): void {
-    this.visualState = VisualState.Open;
-  }
-
-  flag(): void {
-    this.markerState = MarkerState.Flagged;
-  }
-
-  setisMine(): void {
-    this._value = -1;
+  updateReducedValue(): void {
+    this.forEachNeighbor((neighbor) => {
+      if (neighbor.isFlagged) {
+        this._reducedValue--;
+      }
+    });
   }
 }
 

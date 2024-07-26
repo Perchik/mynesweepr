@@ -17,12 +17,15 @@ export enum MarkerState {
   Mine,
 }
 
-const getCellBackgroundColor = (visualState: VisualState) => {
+const getCellBackgroundColor = (
+  visualState: VisualState,
+  isExploded = false
+) => {
+  if (isExploded) return "#f00";
+
   switch (visualState) {
     case VisualState.Open:
       return "#ddd";
-    case VisualState.Exploded:
-      return "#f00";
     case VisualState.Closed:
     default:
       return "#ccc";
@@ -55,9 +58,11 @@ const getCellFontColor = (cellValue: number) => {
 const CellContainer = styled.div.attrs<{
   visualState: VisualState;
   cellValue: number;
-}>(({ visualState, cellValue }) => ({
+  backgroundColor: string;
+}>(({ visualState, cellValue, backgroundColor }) => ({
   visualState,
   cellValue,
+  backgroundColor,
 }))<{ visualState: VisualState; cellValue: number }>`
   width: 30px;
   height: 30px;
@@ -65,24 +70,16 @@ const CellContainer = styled.div.attrs<{
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  background-color: ${({ visualState }) => getCellBackgroundColor(visualState)};
+  background-color: ${({ backgroundColor }) => backgroundColor};
   box-sizing: border-box;
   user-select: none;
   border: solid #808080;
   border-width: ${({ visualState }) =>
-    visualState === VisualState.Open
-      ? "1px"
-      : visualState === VisualState.Exploded
-      ? 0
-      : "3px"};
+    visualState === VisualState.Open ? "1px" : "3px"};
   border-top-color: ${({ visualState }) =>
-    visualState === VisualState.Open || visualState === VisualState.Exploded
-      ? "#999"
-      : "#fff"};
+    visualState === VisualState.Open ? "#999" : "#fff"};
   border-left-color: ${({ visualState }) =>
-    visualState === VisualState.Open || visualState === VisualState.Exploded
-      ? "#999"
-      : "#fff"};
+    visualState === VisualState.Open ? "#999" : "#fff"};
   color: ${({ cellValue }) => getCellFontColor(cellValue)};
   font-family: "MINE-SWEEPER", sans-serif;
 `;
@@ -118,11 +115,13 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   const [visualState, setVisualState] = useState(cell.visualState);
   const [markerState, setMarkerState] = useState(cell.markerState);
   const { viewMode } = useGameContext();
+  const [isExploded, setIsExploded] = useState(cell.isExploded);
 
   useEffect(() => {
     setVisualState(cell.visualState);
     setMarkerState(cell.markerState);
-  }, [cell.visualState, cell.markerState]);
+    setIsExploded(cell.isExploded);
+  }, [cell.visualState, cell.markerState, cell.isExploded]);
 
   return (
     <CellContainer
@@ -130,8 +129,9 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
       onContextMenu={onContextMenu}
       cellValue={cell.value}
       visualState={visualState}
+      backgroundColor={getCellBackgroundColor(visualState, isExploded)}
     >
-      {cell.isOpen || cell.visualState === VisualState.Exploded ? (
+      {cell.isOpen ? (
         cell.isMine ? (
           <CellIcon src="icons/mine.png" alt="mine" />
         ) : (

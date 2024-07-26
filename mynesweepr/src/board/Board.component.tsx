@@ -2,8 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import Cell from "../cell/Cell.component";
 import { Board as BoardModel } from "./Board.model";
-import { useGameContext } from "../context/GameContext";
-import { createReducedBoard } from "../utils/ReducedBoard";
+
 const GameBoard = styled.div`
   display: inline-block;
   border: 6px solid;
@@ -22,13 +21,9 @@ interface BoardProps {
 }
 
 const Board: React.FC<BoardProps> = ({ board, onClick, onCellRightClick }) => {
-  const { viewMode } = useGameContext();
-  const displayedBoard =
-    viewMode === "reduced" ? createReducedBoard(board) : board;
-
   return (
     <GameBoard>
-      {displayedBoard.cells.map((row, y) => (
+      {board.cells.map((row, y) => (
         <Row key={y}>
           {row.map((cell, x) => (
             <Cell
