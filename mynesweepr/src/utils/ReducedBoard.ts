@@ -1,5 +1,6 @@
 import { Board } from "../board/Board.model";
 import { MarkerState } from "../cell/Cell.model";
+
 export const createReducedBoard = (board: Board): Board => {
   const reducedBoard = board.clone();
 
@@ -8,8 +9,8 @@ export const createReducedBoard = (board: Board): Board => {
       const cell = board.cell(x, y);
       if (cell.markerState === MarkerState.Flagged) {
         cell.neighbors.forEach((neighbor) => {
-          if (!neighbor.isMine() && neighbor.value > 0) {
-            neighbor.decrementValue();
+          if (!neighbor.isMine && neighbor.value > 0) {
+            neighbor.decrementValue(); // update this.
           }
         });
       }

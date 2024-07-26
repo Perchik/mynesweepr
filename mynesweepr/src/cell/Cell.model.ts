@@ -13,27 +13,48 @@ export enum MarkerState {
 }
 
 class Cell {
-  value: number;
+  private _value: number;
   position: { x: number; y: number };
   visualState: VisualState;
   markerState: MarkerState;
   neighbors: Cell[] = [];
 
   constructor(value: number, position: { x: number; y: number }) {
-    this.value = value;
+    this._value = value;
     this.position = position;
     this.visualState = VisualState.Closed;
     this.markerState = MarkerState.None;
   }
 
+  get value(): number {
+    return this._value;
+  }
+
+  get isMine(): boolean {
+    return this._value === -1;
+  }
+
+  get isOpen(): boolean {
+    return this.visualState === VisualState.Open;
+  }
+
+  get isEmpty(): boolean {
+    return this._value === 0;
+  }
+
+  get isMarked(): boolean {
+    return (
+      this.markerState === MarkerState.Flagged ||
+      this.markerState === MarkerState.Guessed
+    );
+  }
+
   incrementValue() {
-    this.value++;
+    this._value++;
   }
+
   decrementValue() {
-    Math.max(this.value--, 0);
-  }
-  setValue(value: number): void {
-    this.value = value;
+    Math.max(this._value--, 0);
   }
 
   setNeighbors(neighbors: Cell[]): void {
@@ -45,32 +66,13 @@ class Cell {
   }
 
   maybeOpen(): boolean {
-    if (this.isMarked() || this.isOpen()) return false;
+    if (this.isMarked || this.isOpen) return false;
 
     this.visualState = VisualState.Open;
-    if (this.isMine()) {
+    if (this.isMine) {
       this.markerState = MarkerState.Mine;
     }
     return true;
-  }
-
-  isOpen(): boolean {
-    return this.visualState === VisualState.Open;
-  }
-
-  isMine(): boolean {
-    return this.value === -1;
-  }
-
-  isEmpty(): boolean {
-    return this.value === 0;
-  }
-
-  isMarked(): boolean {
-    return (
-      this.markerState === MarkerState.Flagged ||
-      this.markerState === MarkerState.Guessed
-    );
   }
 
   toggleFlag(useGuessing = false): boolean {
@@ -90,6 +92,10 @@ class Cell {
 
   flag(): void {
     this.markerState = MarkerState.Flagged;
+  }
+
+  setisMine(): void {
+    this._value = -1;
   }
 }
 

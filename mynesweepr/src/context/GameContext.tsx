@@ -20,7 +20,6 @@ interface GameContextType {
     mines: number,
     seed?: string
   ) => void;
-  board: Cell[][];
   elapsedTime: number;
   flags: number;
   isMouseDown: boolean;
@@ -43,7 +42,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const [flags, setFlags] = useState(0);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [viewMode, setViewMode] = useState<"normal" | "reduced">("normal");
-  const [board, setBoard] = useState(game.board.cells);
 
   const timer = useMemo(() => new Timer((time) => setElapsedTime(time)), []);
 
@@ -57,10 +55,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       timer.stop();
     };
   }, [game.gameState, timer]);
-
-  useEffect(() => {
-    setBoard(game.board.cells);
-  }, [game]);
 
   const handleMouseDown = useCallback(() => {
     setIsMouseDown(true);
@@ -114,7 +108,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       setGame(newGame);
       setFlags(newGame.flags);
       timer.reset();
-
+      setViewMode("normal");
       setElapsedTime(0);
     },
     [timer]
@@ -131,7 +125,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         gameState: game.gameState,
         elapsedTime,
         flags,
-        board,
         startNewGame,
         isMouseDown,
         viewMode,

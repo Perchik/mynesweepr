@@ -47,7 +47,7 @@ export class Game {
     if (this.gameOver) return;
 
     const cell = this.board.cell(x, y);
-    if (cell.isOpen()) {
+    if (cell.isOpen) {
       this.maybeChordCell(x, y);
     } else {
       this.openQueue.push({ x, y });
@@ -60,15 +60,15 @@ export class Game {
       const { x, y } = this.openQueue.shift()!;
       const cell = this.board.cell(x, y);
 
-      if (!cell.isOpen()) {
+      if (!cell.isOpen) {
         const opened = cell.maybeOpen();
         if (!opened) return;
 
-        if (cell.isMine()) {
+        if (cell.isMine) {
           cell.visualState = VisualState.Exploded;
           this.maybeEndGame(true);
           break;
-        } else if (cell.isEmpty()) {
+        } else if (cell.isEmpty) {
           this.openUnmarkedNeighbors(x, y);
         }
       }
@@ -80,7 +80,7 @@ export class Game {
     if (this.gameOver) return;
 
     const cell = this.board.cell(x, y);
-    if (cell.isOpen()) this.maybeFlagChordCell(x, y);
+    if (cell.isOpen) this.maybeFlagChordCell(x, y);
     else {
       const hasFlag = cell.toggleFlag(useGuessing);
       if (hasFlag) this._numFlags++;
@@ -120,10 +120,7 @@ export class Game {
 
     if (flaggedNeighbors.length === cell.value) {
       neighbors.forEach((neighbor) => {
-        if (
-          !neighbor.isOpen() &&
-          neighbor.markerState !== MarkerState.Flagged
-        ) {
+        if (!neighbor.isOpen && neighbor.markerState !== MarkerState.Flagged) {
           this.openQueue.push({
             x: neighbor.position.x,
             y: neighbor.position.y,

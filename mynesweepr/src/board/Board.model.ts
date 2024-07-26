@@ -22,11 +22,11 @@ export class Board {
   }
 
   get unopenedCells(): Cell[] {
-    return this._cells.flat().filter((cell) => !cell.isOpen());
+    return this._cells.flat().filter((cell) => !cell.isOpen);
   }
 
   get mineCells(): Cell[] {
-    return this._cells.flat().filter((cell) => cell.isMine());
+    return this._cells.flat().filter((cell) => cell.isMine);
   }
 
   get numMines(): number {
@@ -69,7 +69,7 @@ export class Board {
     while (placedMines < mines) {
       const x = Math.floor(rng() * this.width);
       const y = Math.floor(rng() * this.height);
-      if (!this.cell(x, y).isMine()) {
+      if (!this.cell(x, y).isMine) {
         this.placeMine(x, y);
         placedMines++;
       }
@@ -77,10 +77,10 @@ export class Board {
   }
 
   private placeMine(x: number, y: number): void {
-    this.cell(x, y).setValue(-1);
+    this.cell(x, y).setisMine();
     this.cell(x, y).forEachNeighbor((neighbor) => {
       // Update the count of non-mine neighbors
-      if (!neighbor.isMine()) {
+      if (!neighbor.isMine) {
         neighbor.incrementValue();
       }
     });

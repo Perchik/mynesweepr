@@ -131,8 +131,8 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
       cellValue={cell.value}
       visualState={visualState}
     >
-      {cell.isOpen() || cell.visualState === VisualState.Exploded ? (
-        cell.isMine() ? (
+      {cell.isOpen || cell.visualState === VisualState.Exploded ? (
+        cell.isMine ? (
           <CellIcon src="icons/mine.png" alt="mine" />
         ) : (
           cell.value
