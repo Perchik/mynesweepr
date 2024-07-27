@@ -12,25 +12,34 @@ export enum MarkerState {
 }
 
 class Cell {
-  private _value: number;
-  private _reducedValue: number;
+  private _value: number = 0;
+  private _reducedValue: number = 0;
 
-  position: { x: number; y: number };
-  visualState: VisualState;
-  markerState: MarkerState;
+  position: { x: number; y: number } = { x: -1, y: -1 };
+  visualState: VisualState = VisualState.Closed;
+  markerState: MarkerState = MarkerState.None;
   neighbors: Cell[] = [];
   isExploded: boolean = false;
 
   constructor(value: number, position: { x: number; y: number }) {
+    this.resetCell(value, position);
+  }
+
+  resetCell(value: number, position: { x: number; y: number }) {
     this._value = value;
     this._reducedValue = value;
     this.position = position;
     this.visualState = VisualState.Closed;
     this.markerState = MarkerState.None;
+    this.isExploded = false;
   }
 
   get value(): number {
     return this._value;
+  }
+
+  get reducedValue(): number {
+    return this._reducedValue;
   }
 
   get isMine(): boolean {
@@ -67,6 +76,7 @@ class Cell {
   explode(): void {
     this.isExploded = true;
   }
+
   setisMine(): void {
     this._value = -1;
   }
@@ -105,6 +115,7 @@ class Cell {
   }
 
   updateReducedValue(): void {
+    this._reducedValue = this._value;
     this.forEachNeighbor((neighbor) => {
       if (neighbor.isFlagged) {
         this._reducedValue--;
