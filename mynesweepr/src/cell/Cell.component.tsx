@@ -9,10 +9,10 @@ const getCellBackgroundColor = (
 ) => {
   if (isExploded) return "#f00";
   switch (visualState) {
-    case VisualState.Open:
-    case VisualState.ReducedOpen:
+    case "open":
+    case "reducedOpen":
       return "#ddd";
-    case VisualState.Closed:
+    case "closed":
     default:
       return "#ccc";
   }
@@ -71,9 +71,9 @@ const CellContainer = styled.div.attrs<{
   color: ${({ cellValue }) => getCellFontColor(cellValue)};
   font-family: "MINE-SWEEPER", sans-serif;
 
-  ${(props) => props.visualState === VisualState.Open && FlatCell}
-  ${(props) => props.visualState === VisualState.Closed && RaisedCell}
-  ${(props) => props.visualState === VisualState.ReducedOpen && FlatCell}
+  ${(props) => props.visualState === "open" && FlatCell}
+  ${(props) => props.visualState === "closed" && RaisedCell}
+  ${(props) => props.visualState === "reducedOpen" && FlatCell}
 `;
 
 const CellIcon = styled.img`
@@ -92,11 +92,11 @@ const getMarkerIcon = (
   viewMode: string = "normal"
 ): JSX.Element | null => {
   switch (markerState) {
-    case MarkerState.Flagged:
+    case "flagged":
       return <CellIcon src="icons/flag.svg" alt="flag" />;
-    case MarkerState.Guessed:
+    case "guessed":
       return <CellIcon src="icons/question.svg" alt="question mark" />;
-    case MarkerState.None:
+    case "none":
     default:
       return null;
   }

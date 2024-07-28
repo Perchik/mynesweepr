@@ -1,25 +1,19 @@
-export enum VisualState {
-  Open,
-  Closed,
-  Pressed,
-  ReducedOpen,
-}
+export type VisualState = "open" | "closed" | "reducedOpen";
 
-export enum MarkerState {
-  None,
-  Flagged,
-  Guessed,
-  Mine,
-  HiddenFlag,
-}
+export type MarkerState =
+  | "none"
+  | "flagged"
+  | "hiddenFlag"
+  | "guessed"
+  | "mine";
 
 class Cell {
   private _value: number = 0;
   private _reducedValueMemo: number | null = null;
 
   position: { x: number; y: number } = { x: -1, y: -1 };
-  visualState: VisualState = VisualState.Closed;
-  markerState: MarkerState = MarkerState.None;
+  visualState: VisualState = "closed";
+  markerState: MarkerState = "none";
   neighbors: Cell[] = [];
   isExploded: boolean = false;
 
@@ -31,8 +25,8 @@ class Cell {
     this._value = value;
     this._reducedValueMemo = null;
     this.position = position;
-    this.visualState = VisualState.Closed;
-    this.markerState = MarkerState.None;
+    this.visualState = "closed";
+    this.markerState = "none";
     this.isExploded = false;
   }
 
@@ -52,7 +46,7 @@ class Cell {
   }
 
   get isOpen(): boolean {
-    return this.visualState === VisualState.Open;
+    return this.visualState === "open";
   }
 
   get isEmpty(): boolean {
@@ -60,25 +54,19 @@ class Cell {
   }
 
   get isMarked(): boolean {
-    return (
-      this.markerState === MarkerState.Flagged ||
-      this.markerState === MarkerState.Guessed
-    );
+    return this.markerState === "flagged" || this.markerState === "guessed";
   }
 
   get isFlagged(): boolean {
-    return (
-      this.markerState === MarkerState.Flagged ||
-      this.markerState === MarkerState.HiddenFlag
-    );
+    return this.markerState === "flagged" || this.markerState === "hiddenFlag";
   }
 
   open(): void {
-    this.visualState = VisualState.Open;
+    this.visualState = "open";
   }
 
   flag(): void {
-    this.markerState = MarkerState.Flagged;
+    this.markerState = "flagged";
   }
 
   explode(): void {
@@ -104,22 +92,22 @@ class Cell {
   maybeOpen(): boolean {
     if (this.isMarked || this.isOpen) return false;
 
-    this.visualState = VisualState.Open;
+    this.visualState = "open";
     if (this.isMine) {
-      this.markerState = MarkerState.Mine;
+      this.markerState = "mine";
     }
     return true;
   }
 
   toggleFlag(useGuessing = false): boolean {
-    if (this.markerState === MarkerState.None) {
-      this.markerState = MarkerState.Flagged;
-    } else if (this.markerState === MarkerState.Flagged) {
-      this.markerState = useGuessing ? MarkerState.Guessed : MarkerState.None;
-    } else if (this.markerState === MarkerState.Guessed) {
-      this.markerState = MarkerState.None;
+    if (this.markerState === "none") {
+      this.markerState = "flagged";
+    } else if (this.markerState === "flagged") {
+      this.markerState = useGuessing ? "guessed" : "none";
+    } else if (this.markerState === "guessed") {
+      this.markerState = "none";
     }
-    return this.markerState === MarkerState.Flagged;
+    return this.markerState === "flagged";
   }
 
   computeReducedValue(): number {
@@ -140,16 +128,14 @@ class Cell {
 
   enterReducedMode(): void {
     if (this.isFlagged) {
-      this.markerState = MarkerState.HiddenFlag;
-      this.visualState = VisualState.ReducedOpen;
+      this.markerState = "hiddenFlag";
+      this.visualState = "reducedOpen";
     }
   }
 
   exitReducedMode(): void {
-    if (this.visualState === VisualState.ReducedOpen)
-      this.visualState = VisualState.Closed;
-    if (this.markerState === MarkerState.HiddenFlag)
-      this.markerState = MarkerState.Flagged;
+    if (this.visualState === "reducedOpen") this.visualState = "closed";
+    if (this.markerState === "hiddenFlag") this.markerState = "flagged";
   }
 }
 

@@ -115,12 +115,12 @@ export class Game {
     const cell = this.board.cell(x, y);
     const neighbors = cell.neighbors;
     const flaggedNeighbors = neighbors.filter(
-      (neighbor) => neighbor.markerState === MarkerState.Flagged
+      (neighbor) => neighbor.markerState === "flagged"
     );
 
     if (flaggedNeighbors.length === cell.value) {
       cell.forEachNeighbor((neighbor) => {
-        if (!neighbor.isOpen && neighbor.markerState !== MarkerState.Flagged) {
+        if (!neighbor.isOpen && neighbor.markerState !== "flagged") {
           this.openQueue.push({
             x: neighbor.position.x,
             y: neighbor.position.y,
