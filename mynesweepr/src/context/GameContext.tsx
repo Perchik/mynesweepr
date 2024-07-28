@@ -9,7 +9,6 @@ import React, {
 import { Game } from "../game/Game.model";
 import { useSettingsContext } from "./SettingsContext";
 import Timer from "../utils/Timer";
-import { Cell } from "../cell/Cell.model";
 
 interface GameContextType {
   game: Game;
@@ -23,12 +22,14 @@ interface GameContextType {
   elapsedTime: number;
   flags: number;
   isMouseDown: boolean;
+  isDirty: boolean;
   viewMode: "normal" | "reduced";
   toggleViewMode: () => void;
   handleMouseDown: () => void;
   handleMouseUp: () => void;
   handleLeftClick: (x: number, y: number) => void;
   handleCellRightClick: (x: number, y: number, e: React.MouseEvent) => void;
+  updateReducedBoard: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -42,6 +43,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   const [flags, setFlags] = useState(0);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [viewMode, setViewMode] = useState<"normal" | "reduced">("normal");
+  const [isDirty, setIsDirty] = useState(false);
 
   const timer = useMemo(() => new Timer((time) => setElapsedTime(time)), []);
 
@@ -81,6 +83,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       setFlags(game.flags);
       setGame(game.clone());
+      setIsDirty(true);
     },
     [game, timer, settings.useGuessing]
   );
@@ -110,13 +113,38 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
       timer.reset();
       setViewMode("normal");
       setElapsedTime(0);
+      setIsDirty(false);
     },
     [timer]
   );
 
   const toggleViewMode = useCallback(() => {
-    setViewMode((prevMode) => (prevMode === "normal" ? "reduced" : "normal"));
-  }, []);
+    setViewMode((prevMode) => {
+      const newMode = prevMode === "normal" ? "reduced" : "normal";
+      game.board.cells.forEach((row) =>
+        row.forEach((cell) => {
+          if (newMode === "reduced") {
+            cell.enterReducedMode();
+          } else {
+            cell.exitReducedMode();
+          }
+        })
+      );
+      return newMode;
+    });
+    if (viewMode === "reduced") {
+      setIsDirty(false);
+    }
+  }, [game.board.cells, viewMode]);
+
+  const updateReducedBoard = useCallback(() => {
+    game.board.cells.forEach((row) =>
+      row.forEach((cell) => {
+        cell.updateReducedValue();
+      })
+    );
+    setIsDirty(false); // Reset the dirty state after update
+  }, [game.board.cells]);
 
   return (
     <GameContext.Provider
@@ -128,11 +156,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         startNewGame,
         isMouseDown,
         viewMode,
+        isDirty,
         toggleViewMode,
         handleMouseDown,
         handleMouseUp,
         handleLeftClick,
         handleCellRightClick,
+        updateReducedBoard,
       }}
     >
       {children}

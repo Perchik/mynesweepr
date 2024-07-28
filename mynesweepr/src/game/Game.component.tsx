@@ -4,16 +4,11 @@ import BoardComponent from "../board/Board.component";
 import GameButton from "./GameButton";
 import { useGameContext } from "../context/GameContext";
 import DigitalCounter from "../components/DigitalCounter";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography, { TypographyProps } from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import IconButton from "@mui/material/IconButton";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import BrushIcon from "@mui/icons-material/Brush";
 import Switch from "@mui/material/Switch";
 import { Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 const GameContainer = styled.div`
   display: inline-block;
@@ -65,6 +60,8 @@ const Game: React.FC = () => {
     handleCellRightClick,
     handleMouseDown,
     handleMouseUp,
+    isDirty,
+    updateReducedBoard,
   } = useGameContext();
 
   return (
@@ -101,6 +98,17 @@ const Game: React.FC = () => {
             checked={viewMode === "reduced"}
             onChange={toggleViewMode}
           />
+        </Tooltip>
+        <Tooltip title="Update reduced board state">
+          <span>
+            <IconButton
+              size="small"
+              onClick={updateReducedBoard}
+              disabled={viewMode !== "reduced" || !isDirty}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </span>
         </Tooltip>
       </SwitchContainer>
     </GameContainer>

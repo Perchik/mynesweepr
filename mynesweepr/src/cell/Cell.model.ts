@@ -2,6 +2,7 @@ export enum VisualState {
   Open,
   Closed,
   Pressed,
+  ReducedOpen,
 }
 
 export enum MarkerState {
@@ -9,11 +10,12 @@ export enum MarkerState {
   Flagged,
   Guessed,
   Mine,
+  HiddenFlag,
 }
 
 class Cell {
   private _value: number = 0;
-  private _reducedValue: number = 0;
+  private _reducedValueMemo: number | null = null;
 
   position: { x: number; y: number } = { x: -1, y: -1 };
   visualState: VisualState = VisualState.Closed;
@@ -27,7 +29,7 @@ class Cell {
 
   resetCell(value: number, position: { x: number; y: number }) {
     this._value = value;
-    this._reducedValue = value;
+    this._reducedValueMemo = null;
     this.position = position;
     this.visualState = VisualState.Closed;
     this.markerState = MarkerState.None;
@@ -39,7 +41,10 @@ class Cell {
   }
 
   get reducedValue(): number {
-    return this._reducedValue;
+    if (this._reducedValueMemo === null) {
+      this._reducedValueMemo = this.computeReducedValue();
+    }
+    return this._reducedValueMemo;
   }
 
   get isMine(): boolean {
@@ -62,7 +67,10 @@ class Cell {
   }
 
   get isFlagged(): boolean {
-    return this.markerState === MarkerState.Flagged;
+    return (
+      this.markerState === MarkerState.Flagged ||
+      this.markerState === MarkerState.HiddenFlag
+    );
   }
 
   open(): void {
@@ -114,13 +122,34 @@ class Cell {
     return this.markerState === MarkerState.Flagged;
   }
 
-  updateReducedValue(): void {
-    this._reducedValue = this._value;
+  computeReducedValue(): number {
+    let reducedValue = this._value;
+
     this.forEachNeighbor((neighbor) => {
       if (neighbor.isFlagged) {
-        this._reducedValue--;
+        reducedValue--;
       }
     });
+
+    return reducedValue;
+  }
+
+  updateReducedValue(): void {
+    this._reducedValueMemo = this.computeReducedValue();
+  }
+
+  enterReducedMode(): void {
+    if (this.isFlagged) {
+      this.markerState = MarkerState.HiddenFlag;
+      this.visualState = VisualState.ReducedOpen;
+    }
+  }
+
+  exitReducedMode(): void {
+    if (this.visualState === VisualState.ReducedOpen)
+      this.visualState = VisualState.Closed;
+    if (this.markerState === MarkerState.HiddenFlag)
+      this.markerState = MarkerState.Flagged;
   }
 }
 

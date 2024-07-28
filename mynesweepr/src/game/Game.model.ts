@@ -1,5 +1,5 @@
 import { Board } from "../board/Board.model";
-import { VisualState, MarkerState } from "../cell/Cell.model";
+import { MarkerState } from "../cell/Cell.model";
 
 export type GameState = "inprogress" | "win" | "lose" | "new" | "none";
 

@@ -10,6 +10,7 @@ const getCellBackgroundColor = (
   if (isExploded) return "#f00";
   switch (visualState) {
     case VisualState.Open:
+    case VisualState.ReducedOpen:
       return "#ddd";
     case VisualState.Closed:
     default:
@@ -72,6 +73,7 @@ const CellContainer = styled.div.attrs<{
 
   ${(props) => props.visualState === VisualState.Open && FlatCell}
   ${(props) => props.visualState === VisualState.Closed && RaisedCell}
+  ${(props) => props.visualState === VisualState.ReducedOpen && FlatCell}
 `;
 
 const CellIcon = styled.img`
@@ -91,7 +93,6 @@ const getMarkerIcon = (
 ): JSX.Element | null => {
   switch (markerState) {
     case MarkerState.Flagged:
-      if (viewMode === "reduced") return <CellIcon src="icons/blueFlag.svg" />;
       return <CellIcon src="icons/flag.svg" alt="flag" />;
     case MarkerState.Guessed:
       return <CellIcon src="icons/question.svg" alt="question mark" />;
@@ -112,9 +113,6 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   const previousViewModeRef = useRef(viewMode);
   const cellRef = useRef<CellModel>(cell);
 
-  /**
-   * Reduced mode sets the initial value but doesn't udpate itself automatically, so that you can place flags without them disappearing immediately. If a cell gets flagged while in reduced mode, the mode is marked dirty and we show a refresh button to update the reduced state.
-   */
   useEffect(() => {
     const previousViewMode = previousViewModeRef.current;
     if (previousViewMode !== viewMode) {
