@@ -1,6 +1,4 @@
-export interface Position {
+export type Position = {
   x: number;
   y: number;
-}
-export const positionKey = (position: Position): string =>
-  `${position.x},${position.y}`;
+};

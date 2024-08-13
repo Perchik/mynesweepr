@@ -1,9 +1,28 @@
 import seedrandom from "seedrandom";
 import { Cell } from "../cell/Cell.model";
-
+import { ImmutableCell } from "../cell/ImmutableCell.model";
+import { Position } from "../utils/Position";
+import { NeighborLookup } from "../utils/NeighborLookup";
+import { generateCoordinates } from "../utils/RNG";
 export class Board {
   private _cells: Cell[][];
   private _mines: number;
+
+  private _mineCoords: Set<Position> = new Set<Position>();
+  private _iCells: ImmutableCell[][];
+
+  private _neighborLookup: NeighborLookup;
+
+  constructor(width: number, height: number, mines: number, seed?: string) {
+    this._neighborLookup = new NeighborLookup(width, height);
+    this._iCells = this.createBoard(width, height);
+
+    this._mineCoords = generateCoordinates(width, height, mines, seed);
+    // this._cells = this.createEmptyBoard(width, height);
+    // this.initializeCellNeighbors();
+    // this.placeMines(mines, seed);
+    // this._mines = mines;
+  }
 
   get cells(): Cell[][] {
     return this._cells;
@@ -31,13 +50,6 @@ export class Board {
 
   get numMines(): number {
     return this._mines;
-  }
-
-  constructor(width: number, height: number, mines: number, seed?: string) {
-    this._cells = this.createEmptyBoard(width, height);
-    this.initializeCellNeighbors();
-    this.placeMines(mines, seed);
-    this._mines = mines;
   }
 
   clone(): Board {
@@ -84,24 +96,5 @@ export class Board {
         neighbor.incrementValue();
       }
     });
-  }
-
-  getNeighbors(x: number, y: number): Cell[] {
-    // prettier-ignore
-    const directions = [
-        [-1, -1], [-1, 0], [-1, 1],
-        [ 0, -1],          [ 0, 1],
-        [ 1, -1], [ 1, 0], [ 1, 1]
-    ];
-
-    const neighbors: Cell[] = [];
-    for (const [dx, dy] of directions) {
-      const nx = x + dx;
-      const ny = y + dy;
-      if (nx >= 0 && ny >= 0 && nx < this.width && ny < this.height) {
-        neighbors.push(this._cells[ny][nx]);
-      }
-    }
-    return neighbors;
   }
 }
