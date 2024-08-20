@@ -146,6 +146,7 @@ class ImmutableCell {
     });
   }
 
+  // Only opens the cel lif it's not marked (flag or question) or already open.
   maybeOpen(): ImmutableCell | null {
     if (this.isMarked || this.isOpen) return null;
 
