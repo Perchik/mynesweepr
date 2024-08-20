@@ -2,6 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { Cell as CellModel, VisualState, MarkerState } from "./Cell.model";
 import { useGameContext } from "../context/GameContext";
+import flagIcon from "./assets/flag.svg";
+import blueFlagIcon from "./assets/blueFlag.svg";
+import questionIcon from "./assets/question.svg";
+import mineIcon from "./assets/mine.png";
 
 const getCellBackgroundColor = (
   visualState: VisualState,
@@ -58,7 +62,7 @@ const CellContainer = styled.div.attrs<{
   visualState,
   cellValue,
   backgroundColor,
-}))<{ visualState: VisualState; cellValue: number }>`
+}))<{ visualState: VisualState; cellValue: number; backgroundColor: string }>`
   width: 30px;
   height: 30px;
   display: flex;
@@ -93,9 +97,9 @@ const getMarkerIcon = (
 ): JSX.Element | null => {
   switch (markerState) {
     case "flagged":
-      return <CellIcon src="icons/flag.svg" alt="flag" />;
+      return <CellIcon src={flagIcon} alt="flag" />;
     case "guessed":
-      return <CellIcon src="icons/question.svg" alt="question mark" />;
+      return <CellIcon src={questionIcon} alt="question mark" />;
     case "none":
     default:
       return null;
@@ -143,7 +147,7 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   const getCellContent = () => {
     if (cell.isOpen) {
       if (cell.isMine) {
-        return <CellIcon src="icons/mine.png" alt="mine" />;
+        return <CellIcon src={mineIcon} alt="mine" />;
       } else if (displayValue > 0) {
         return displayValue;
       }
