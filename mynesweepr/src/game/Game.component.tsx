@@ -3,7 +3,7 @@ import styled from "styled-components";
 import BoardComponent from "../board/Board.component";
 import GameButton from "./GameButton";
 import { useGameContext } from "../context/GameContext";
-import DigitalCounter from "../components/DigitalCounter";
+import { DigitalCounter } from "@/digitalCounter";
 import Typography, { TypographyProps } from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Switch from "@mui/material/Switch";

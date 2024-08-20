@@ -1,7 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./app/App";
-import "./app/globalStyles";
+import GlobalStyle from "./app/globalStyles";
+("./app/globalStyles");
 import "@fontsource/manrope";
 import "@fontsource/manrope/800.css";
 
@@ -10,6 +11,9 @@ const root = createRoot(container!);
 
 root.render(
   <React.StrictMode>
-    <App />
+    <>
+      <GlobalStyle />
+      <App />
+    </>
   </React.StrictMode>
 );
