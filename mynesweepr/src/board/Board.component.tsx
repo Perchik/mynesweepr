@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import Cell from "../cell/Cell.component";
 import { Board as BoardModel } from "./Board.model";
+import { Position } from "../utils/Position";
 
 const GameBoard = styled.div`
   display: inline-block;
@@ -16,8 +17,8 @@ const Row = styled.div`
 
 interface BoardProps {
   board: BoardModel;
-  onClick: (x: number, y: number) => void;
-  onCellRightClick: (x: number, y: number, e: React.MouseEvent) => void;
+  onClick: (position: Position) => void;
+  onCellRightClick: (position: Position, e: React.MouseEvent) => void;
 }
 
 const Board: React.FC<BoardProps> = ({ board, onClick, onCellRightClick }) => {
@@ -29,8 +30,8 @@ const Board: React.FC<BoardProps> = ({ board, onClick, onCellRightClick }) => {
             <Cell
               key={x}
               cell={cell}
-              onClick={() => onClick(x, y)}
-              onContextMenu={(e) => onCellRightClick(x, y, e)}
+              onClick={() => onClick({ x, y })}
+              onContextMenu={(e) => onCellRightClick({ x, y }, e)}
             />
           ))}
         </Row>

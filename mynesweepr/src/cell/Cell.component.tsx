@@ -1,9 +1,8 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import { Cell as CellModel, VisualState, MarkerState } from "./Cell.model";
 import { useGameContext } from "../context/GameContext";
 import flagIcon from "./assets/flag.svg";
-import blueFlagIcon from "./assets/blueFlag.svg";
 import questionIcon from "./assets/question.svg";
 import mineIcon from "./assets/mine.png";
 
@@ -91,16 +90,12 @@ interface CellProps {
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const getMarkerIcon = (
-  markerState: MarkerState,
-  viewMode: string = "normal"
-): JSX.Element | null => {
+const getMarkerIcon = (markerState: MarkerState): JSX.Element | null => {
   switch (markerState) {
     case "flagged":
       return <CellIcon src={flagIcon} alt="flag" />;
     case "guessed":
       return <CellIcon src={questionIcon} alt="question mark" />;
-    case "none":
     default:
       return null;
   }
@@ -109,34 +104,8 @@ const getMarkerIcon = (
 const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   const [visualState, setVisualState] = useState(cell.visualState);
   const [markerState, setMarkerState] = useState(cell.markerState);
-  const { viewMode } = useGameContext();
   const [isExploded, setIsExploded] = useState(cell.isExploded);
   const [displayValue, setDisplayValue] = useState(cell.value);
-
-  const reducedValueRef = useRef(cell.reducedValue);
-  const previousViewModeRef = useRef(viewMode);
-  const cellRef = useRef<CellModel>(cell);
-
-  useEffect(() => {
-    const previousViewMode = previousViewModeRef.current;
-    if (previousViewMode !== viewMode) {
-      const cell = cellRef.current;
-      if (viewMode === "reduced") {
-        cell.updateReducedValue();
-      }
-      setDisplayValue(viewMode === "normal" ? cell.value : cell.reducedValue);
-    }
-
-    previousViewModeRef.current = viewMode;
-  }, [viewMode]);
-
-  useEffect(() => {
-    cellRef.current = cell;
-  }, [cell]);
-
-  useEffect(() => {
-    reducedValueRef.current = cell.reducedValue;
-  }, [cell.reducedValue]);
 
   useEffect(() => {
     setVisualState(cell.visualState);
@@ -145,16 +114,16 @@ const Cell: React.FC<CellProps> = ({ cell, onClick, onContextMenu }) => {
   }, [cell.visualState, cell.markerState, cell.isExploded]);
 
   const getCellContent = () => {
-    if (cell.isOpen) {
-      if (cell.isMine) {
+    if (cell.visualState === "open") {
+      if (markerState === "mine") {
         return <CellIcon src={mineIcon} alt="mine" />;
       } else if (displayValue > 0) {
         return displayValue;
       }
     } else {
-      return getMarkerIcon(markerState, viewMode);
+      return getMarkerIcon(markerState);
     }
-    return "";
+    return null;
   };
 
   return (

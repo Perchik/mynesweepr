@@ -1,5 +1,6 @@
 import { Board } from "../board/Board.model";
 import { MarkerState } from "../cell/Cell.model";
+import { Position } from "../utils/Position";
 
 export type GameState = "inprogress" | "win" | "lose" | "new" | "none";
 
@@ -10,7 +11,7 @@ export class Game {
 
   private _numFlags = 0;
   private _mines: number = 0;
-  private openQueue: Array<{ x: number; y: number }> = [];
+  private openQueue: Position[] = [];
 
   get gameOver(): boolean {
     return this.gameState === "win" || this.gameState === "lose";
@@ -43,47 +44,78 @@ export class Game {
     this.openQueue = [];
   }
 
-  openCell(x: number, y: number): void {
+  // Overloaded method signatures while we're switchign to Position
+  openCell(x: number, y: number): void;
+  openCell(position: Position): void;
+  openCell(positionOrX: Position | number, y?: number): void {
+    const position: Position =
+      typeof positionOrX === "object" ? positionOrX : { x: positionOrX, y: y! };
+
     if (this.gameOver) return;
 
-    const cell = this.board.cell(x, y);
-    if (cell.isOpen) {
-      this.maybeChordCell(x, y);
+    const cell = this.board.cell(position);
+    if (cell.visualState === "open") {
+      this.maybeChordCell(position);
     } else {
-      this.openQueue.push({ x, y });
+      this.openQueue.push(position);
     }
     this.processOpenQueue();
   }
-
   private processOpenQueue(): void {
     while (this.openQueue.length > 0) {
-      const { x, y } = this.openQueue.shift()!;
-      const cell = this.board.cell(x, y);
+      const position = this.openQueue.shift()!;
+      const cell = this.board.cell(position);
 
-      if (!cell.isOpen) {
-        const opened = cell.maybeOpen();
-        if (!opened) return;
+      if (cell.visualState !== "open") {
+        const openedCell = cell.open();
+        this.board.updateCell(position, openedCell);
 
-        if (cell.isMine) {
-          cell.explode();
+        if (openedCell.markerState === "mine") {
           this.maybeEndGame(true);
           break;
-        } else if (cell.isEmpty) {
-          this.openUnmarkedNeighbors(x, y);
+        } else if (openedCell.value === 0) {
+          this.openUnmarkedNeighbors(position);
         }
       }
     }
     this.maybeEndGame();
   }
 
-  flagCell(x: number, y: number, useGuessing: boolean = false): void {
+  // Overloaded method signatures while we're switching to Position
+  flagCell(x: number, y: number, useGuessing?: boolean): void;
+  flagCell(position: Position, useGuessing?: boolean): void;
+  flagCell(
+    positionOrX: Position | number,
+    yOrUseGuessing?: number | boolean,
+    useGuessing?: boolean
+  ): void {
+    if (
+      typeof positionOrX === "number" &&
+      typeof yOrUseGuessing === "boolean"
+    ) {
+      throw new Error(
+        "Invalid arguments: Expected (x: number, y: number) or (position: Position)."
+      );
+    }
+
+    const { position, useGuessing: resolvedUseGuessing } =
+      typeof positionOrX === "object"
+        ? { position: positionOrX, useGuessing: useGuessing ?? false }
+        : {
+            position: { x: positionOrX, y: yOrUseGuessing as number },
+            useGuessing: useGuessing ?? false,
+          };
+
     if (this.gameOver) return;
 
-    const cell = this.board.cell(x, y);
-    if (cell.isOpen) this.maybeFlagChordCell(x, y);
-    else {
-      const hasFlag = cell.toggleFlag(useGuessing);
-      if (hasFlag) this._numFlags++;
+    const cell = this.board.cell(position);
+    if (cell.visualState === "open") {
+      this.maybeFlagChordCell(position);
+    } else {
+      const flaggedCell = cell.toggleFlag(resolvedUseGuessing);
+      this.board.updateCell(position, flaggedCell);
+
+      if (flaggedCell.markerState === "flagged") this._numFlags++;
       else this._numFlags--;
     }
   }
@@ -94,7 +126,7 @@ export class Game {
       this.board.height,
       this._mines
     );
-    clonedGame.board = this.board;
+    clonedGame.board = this.board.clone();
     clonedGame.gameState = this.gameState;
     clonedGame._numFlags = this._numFlags;
     clonedGame.elapsedTime = this.elapsedTime;
@@ -111,46 +143,51 @@ export class Game {
     }
   }
 
-  private maybeChordCell(x: number, y: number): void {
-    const cell = this.board.cell(x, y);
-    const neighbors = cell.neighbors;
+  private maybeChordCell(position: Position): void {
+    const cell = this.board.cell(position);
+    const neighbors = this.board.getNeighbors(position);
     const flaggedNeighbors = neighbors.filter(
       (neighbor) => neighbor.markerState === "flagged"
     );
 
     if (flaggedNeighbors.length === cell.value) {
-      cell.forEachNeighbor((neighbor) => {
-        if (!neighbor.isOpen && neighbor.markerState !== "flagged") {
-          this.openQueue.push({
-            x: neighbor.position.x,
-            y: neighbor.position.y,
-          });
+      neighbors.forEach((neighbor) => {
+        if (
+          neighbor.visualState !== "open" &&
+          neighbor.markerState !== "flagged"
+        ) {
+          this.openQueue.push(neighbor.position);
         }
       });
     }
     this.processOpenQueue();
   }
 
-  private maybeFlagChordCell(x: number, y: number): void {
-    const cell = this.board.cell(x, y);
-    const neighbors = cell.neighbors;
-    const closedNeighbors = neighbors.filter((neighbor) => !neighbor.isOpen);
+  private maybeFlagChordCell(position: Position): void {
+    const cell = this.board.cell(position);
+    const neighbors = this.board.getNeighbors(position);
+    const closedNeighbors = neighbors.filter(
+      (neighbor) => neighbor.visualState !== "open"
+    );
     if (closedNeighbors.length !== cell.value) return;
 
     closedNeighbors.forEach((neighbor) => {
-      if (!neighbor.isFlagged) {
-        this.flagCell(neighbor.position.x, neighbor.position.y);
+      if (neighbor.markerState !== "flagged") {
+        this.flagCell(neighbor.position);
       }
     });
   }
 
   private revealAllMines(): void {
-    this.board.mineCells.forEach((cell) => cell.maybeOpen());
+    this.board.mineCells.forEach((cell) => {
+      const openedCell = cell.open();
+      this.board.updateCell(cell.position, openedCell);
+    });
   }
 
-  private openUnmarkedNeighbors(x: number, y: number): void {
-    this.board.cell(x, y).forEachNeighbor((neighbor) => {
-      this.openQueue.push({ x: neighbor.position.x, y: neighbor.position.y });
+  private openUnmarkedNeighbors(position: Position): void {
+    this.board.getNeighbors(position).forEach((neighbor) => {
+      this.openQueue.push(neighbor.position);
     });
 
     this.processOpenQueue();

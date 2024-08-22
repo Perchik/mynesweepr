@@ -138,12 +138,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [game.board.cells, viewMode]);
 
   const updateReducedBoard = useCallback(() => {
-    game.board.cells.forEach((row) =>
-      row.forEach((cell) => {
-        cell.updateReducedValue();
-      })
-    );
-    setIsDirty(false); // Reset the dirty state after update
+    // game.board.cells.forEach((row) =>
+    //   row.forEach((cell) => {
+    //     cell.updateReducedValue();
+    //   })
+    // );
+    // setIsDirty(false); // Reset the dirty state after update
   }, [game.board.cells]);
 
   return (

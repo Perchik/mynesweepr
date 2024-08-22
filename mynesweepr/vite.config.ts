@@ -9,4 +9,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    "process.env": {}, // Ensures libraries don't attempt to access Node.js environment variables
+  },
+  optimizeDeps: {
+    include: ["seedrandom"], // Explicitly include seedrandom if necessary
+  },
 });

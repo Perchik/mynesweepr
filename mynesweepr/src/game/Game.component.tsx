@@ -45,7 +45,7 @@ const SwitchTitle = styled(
   )
 )<{ isEnabled: boolean }>`
   text-shadow: ${(props) =>
-    props.isEnabled ? "0 0 2px #fff,0 0 6px #00ffff" : "inherit"};
+    props.isEnabled ? "0 0 2px #fff, 0 0 6px #00ffff" : "inherit"};
   color: ${(props) => (props.isEnabled ? "#1976d2" : "inherit")};
 `;
 
@@ -73,13 +73,13 @@ const Game: React.FC = () => {
       </Header>
       <BoardComponent
         board={game.board}
-        onClick={(x, y) => handleLeftClick(x, y)}
-        onCellRightClick={(x, y, e) => handleCellRightClick(x, y, e)}
+        onClick={({ x, y }) => handleLeftClick(x, y)}
+        onCellRightClick={({ x, y }, e) => handleCellRightClick(x, y, e)}
       />
       <SwitchContainer>
         <Tooltip
           arrow
-          title='The "reduced" view of the board shows the state of the game if all of the marked mines are removed. Note, that this only considers cells that you marked and has no knowledge of where actual mines are. '
+          title='The "reduced" view of the board shows the state of the game if all of the marked mines are removed. Note, that this only considers cells that you marked and has no knowledge of where actual mines are.'
         >
           <SwitchTitle
             isEnabled={viewMode === "reduced"}

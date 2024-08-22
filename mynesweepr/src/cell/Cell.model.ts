@@ -1,5 +1,6 @@
-export type VisualState = "open" | "closed" | "reducedOpen";
+import { Position } from "../utils/Position";
 
+export type VisualState = "open" | "closed" | "reducedOpen";
 export type MarkerState =
   | "none"
   | "flagged"
@@ -7,135 +8,81 @@ export type MarkerState =
   | "guessed"
   | "mine";
 
+interface CellProps {
+  readonly value: number;
+  readonly position: Position;
+  readonly visualState?: VisualState;
+  readonly markerState?: MarkerState;
+  readonly isExploded?: boolean;
+}
+
 class Cell {
-  private _value: number = 0;
-  private _reducedValueMemo: number | null = null;
+  public readonly value: number;
+  public readonly position: Position;
+  public readonly visualState: VisualState;
+  public readonly markerState: MarkerState;
+  public readonly isExploded: boolean;
 
-  position: { x: number; y: number } = { x: -1, y: -1 };
-  visualState: VisualState = "closed";
-  markerState: MarkerState = "none";
-  neighbors: Cell[] = [];
-  isExploded: boolean = false;
-
-  constructor(value: number, position: { x: number; y: number }) {
-    this.resetCell(value, position);
-  }
-
-  resetCell(value: number, position: { x: number; y: number }) {
-    this._value = value;
-    this._reducedValueMemo = null;
+  constructor({
+    value,
+    position,
+    visualState = "closed",
+    markerState = "none",
+    isExploded = false,
+  }: CellProps) {
+    this.value = value;
     this.position = position;
-    this.visualState = "closed";
-    this.markerState = "none";
-    this.isExploded = false;
+    this.visualState = visualState;
+    this.markerState = markerState;
+    this.isExploded = isExploded;
   }
 
-  get value(): number {
-    return this._value;
+  open(): Cell {
+    return new Cell({ ...this, visualState: "open" });
   }
 
-  get reducedValue(): number {
-    if (this._reducedValueMemo === null) {
-      this._reducedValueMemo = this.computeReducedValue();
-    }
-    return this._reducedValueMemo;
+  flag(): Cell {
+    return new Cell({ ...this, markerState: "flagged" });
   }
 
-  get isMine(): boolean {
-    return this._value === -1;
+  explode(): Cell {
+    return new Cell({ ...this, isExploded: true });
   }
 
-  get isOpen(): boolean {
-    return this.visualState === "open";
-  }
+  toggleFlag(useGuessing = false): Cell {
+    let newMarkerState: MarkerState;
 
-  get isEmpty(): boolean {
-    return this._value === 0;
-  }
-
-  get isMarked(): boolean {
-    return this.markerState === "flagged" || this.markerState === "guessed";
-  }
-
-  get isFlagged(): boolean {
-    return this.markerState === "flagged" || this.markerState === "hiddenFlag";
-  }
-
-  open(): void {
-    this.visualState = "open";
-  }
-
-  flag(): void {
-    this.markerState = "flagged";
-  }
-
-  explode(): void {
-    this.isExploded = true;
-  }
-
-  setisMine(): void {
-    this._value = -1;
-  }
-
-  incrementValue() {
-    this._value++;
-  }
-
-  setNeighbors(neighbors: Cell[]): void {
-    this.neighbors = neighbors;
-  }
-
-  forEachNeighbor(callback: (neighbor: Cell) => void): void {
-    this.neighbors.forEach(callback);
-  }
-
-  maybeOpen(): boolean {
-    if (this.isMarked || this.isOpen) return false;
-
-    this.visualState = "open";
-    if (this.isMine) {
-      this.markerState = "mine";
-    }
-    return true;
-  }
-
-  toggleFlag(useGuessing = false): boolean {
     if (this.markerState === "none") {
-      this.markerState = "flagged";
+      newMarkerState = "flagged";
     } else if (this.markerState === "flagged") {
-      this.markerState = useGuessing ? "guessed" : "none";
+      newMarkerState = useGuessing ? "guessed" : "none";
     } else if (this.markerState === "guessed") {
-      this.markerState = "none";
+      newMarkerState = "none";
+    } else {
+      newMarkerState = this.markerState;
     }
-    return this.markerState === "flagged";
+
+    return new Cell({ ...this, markerState: newMarkerState });
   }
 
-  computeReducedValue(): number {
-    let reducedValue = this._value;
-
-    this.forEachNeighbor((neighbor) => {
-      if (neighbor.isFlagged) {
-        reducedValue--;
-      }
+  enterReducedMode(): Cell {
+    return new Cell({
+      ...this,
+      markerState:
+        this.markerState === "flagged" ? "hiddenFlag" : this.markerState,
+      visualState:
+        this.markerState === "flagged" ? "reducedOpen" : this.visualState,
     });
-
-    return reducedValue;
   }
 
-  updateReducedValue(): void {
-    this._reducedValueMemo = this.computeReducedValue();
-  }
-
-  enterReducedMode(): void {
-    if (this.isFlagged) {
-      this.markerState = "hiddenFlag";
-      this.visualState = "reducedOpen";
-    }
-  }
-
-  exitReducedMode(): void {
-    if (this.visualState === "reducedOpen") this.visualState = "closed";
-    if (this.markerState === "hiddenFlag") this.markerState = "flagged";
+  exitReducedMode(): Cell {
+    return new Cell({
+      ...this,
+      markerState:
+        this.markerState === "hiddenFlag" ? "flagged" : this.markerState,
+      visualState:
+        this.visualState === "reducedOpen" ? "closed" : this.visualState,
+    });
   }
 }
 

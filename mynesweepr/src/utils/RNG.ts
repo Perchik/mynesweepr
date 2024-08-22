@@ -1,4 +1,4 @@
-import seedrandom from "seedrandom";
+import seedrandom from "seedrandom/seedrandom.min.js";
 import { Position } from "./Position";
 
 export class RNG {
@@ -23,22 +23,22 @@ export class RNG {
     return this.rng();
   }
 }
-
-export function generateCoordinates(
+export function getRandomCoordinates(
   width: number,
   height: number,
   count: number,
   seed?: string
 ): Position[] {
   const rng = new RNG(seed);
-  const coordinates: Set<string> = new Set<string>();
+  const coordinates: Set<string> = new Set();
 
   while (coordinates.size < count) {
     const x = Math.floor(rng.random() * width);
     const y = Math.floor(rng.random() * height);
-    coordinates.add(`${x},${y}`);
+    coordinates.add(`${x},${y}`); // Use a string representation for uniqueness
   }
 
+  // Convert back to Position objects
   return Array.from(coordinates).map((coord) => {
     const [x, y] = coord.split(",").map(Number);
     return { x, y };
